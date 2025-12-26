@@ -4,13 +4,15 @@ import redisClient from '../config/redis';
 
 export const uploadDataset = async (req: Request, res: Response) => {
     try {
-        const { name, data, columns, rowCount } = req.body;
+        const { name, data, columns, rowCount, fileName, fileSize } = req.body;
         // @ts-ignore
         const userId = req.user.id;
 
         const newDataset = new Dataset({
             user: userId,
             name,
+            fileName: fileName || name,
+            fileSize: fileSize || 0,
             data,
             columns,
             rowCount
@@ -37,6 +39,24 @@ export const getDatasets = async (req: Request, res: Response) => {
         // For now, simple DB fetch
         const datasets = await Dataset.find({ user: userId }).select('-data'); // Don't send full data for list
         res.json(datasets);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+};
+
+// Get user's upload history
+export const getUploadHistory = async (req: Request, res: Response) => {
+    try {
+        // @ts-ignore
+        const userId = req.user.id;
+
+        const history = await Dataset.find({ user: userId })
+            .select('name fileName fileSize rowCount columns createdAt')
+            .sort({ createdAt: -1 })
+            .limit(50); // Limit to last 50 uploads
+
+        res.json(history);
     } catch (err) {
         console.error(err);
         res.status(500).send('Server Error');

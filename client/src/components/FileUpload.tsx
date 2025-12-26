@@ -53,6 +53,8 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
                         `${API_BASE_URL}/datasets`,
                         {
                             name: file.name.replace('.csv', ''),
+                            fileName: file.name,
+                            fileSize: file.size,
                             data,
                             columns,
                             rowCount
