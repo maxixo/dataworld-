@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
@@ -17,6 +17,9 @@ import {
     Legend,
     ResponsiveContainer
 } from 'recharts';
+import { ChartExport } from '../components/ChartExport';
+import { ChartCustomization, ChartCustomization as ChartCustomizationType } from '../components/ChartCustomization';
+import { DataFilter } from '../components/DataFilter';
 
 interface Dataset {
     _id: string;
@@ -27,17 +30,26 @@ interface Dataset {
     createdAt: string;
 }
 
-const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316'];
-
 export const DatasetView: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const chartRef = useRef<HTMLDivElement>(null);
+
     const [dataset, setDataset] = useState<Dataset | null>(null);
+    const [filteredData, setFilteredData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [chartType, setChartType] = useState<'bar' | 'line' | 'pie'>('bar');
     const [xAxis, setXAxis] = useState<string>('');
     const [yAxis, setYAxis] = useState<string>('');
+    const [customization, setCustomization] = useState<ChartCustomizationType>({
+        colors: ['#8884d8', '#82ca9d', '#ffc658', '#ff7c7c', '#8dd1e1'],
+        title: 'Data Visualization',
+        showLegend: true,
+        showGrid: true,
+        animate: true,
+    });
+    const [isFullscreen, setIsFullscreen] = useState(false);
 
     useEffect(() => {
         const fetchDataset = async () => {
@@ -50,6 +62,7 @@ export const DatasetView: React.FC = () => {
                     }
                 });
                 setDataset(response.data);
+                setFilteredData(response.data.data);
 
                 // Auto-select first two columns as default axes
                 if (response.data.columns.length >= 2) {
@@ -103,35 +116,63 @@ export const DatasetView: React.FC = () => {
             );
         }
 
-        const chartData = dataset.data.map(row => ({
+        const chartData = filteredData.map(row => ({
             [xAxis]: row[xAxis],
             [yAxis]: parseFloat(row[yAxis]) || 0
         }));
+
+        const commonProps = {
+            margin: { top: 20, right: 30, left: 20, bottom: 5 }
+        };
 
         switch (chartType) {
             case 'bar':
                 return (
                     <ResponsiveContainer width="100%" height={400}>
-                        <BarChart data={chartData}>
-                            <CartesianGrid strokeDasharray="3 3" />
+                        <BarChart data={chartData} {...commonProps}>
+                            {customization.showGrid && <CartesianGrid strokeDasharray="3 3" />}
                             <XAxis dataKey={xAxis} />
                             <YAxis />
-                            <Tooltip />
-                            <Legend />
-                            <Bar dataKey={yAxis} fill="#3B82F6" />
+                            <Tooltip
+                                contentStyle={{
+                                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                    border: '1px solid #ccc',
+                                    borderRadius: '8px'
+                                }}
+                                formatter={(value: any) => [Number(value).toLocaleString(), yAxis]}
+                            />
+                            {customization.showLegend && <Legend />}
+                            <Bar
+                                dataKey={yAxis}
+                                fill={customization.colors[0]}
+                                animationDuration={customization.animate ? 1000 : 0}
+                            />
                         </BarChart>
                     </ResponsiveContainer>
                 );
             case 'line':
                 return (
                     <ResponsiveContainer width="100%" height={400}>
-                        <LineChart data={chartData}>
-                            <CartesianGrid strokeDasharray="3 3" />
+                        <LineChart data={chartData} {...commonProps}>
+                            {customization.showGrid && <CartesianGrid strokeDasharray="3 3" />}
                             <XAxis dataKey={xAxis} />
                             <YAxis />
-                            <Tooltip />
-                            <Legend />
-                            <Line type="monotone" dataKey={yAxis} stroke="#3B82F6" strokeWidth={2} />
+                            <Tooltip
+                                contentStyle={{
+                                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                    border: '1px solid #ccc',
+                                    borderRadius: '8px'
+                                }}
+                                formatter={(value: any) => [Number(value).toLocaleString(), yAxis]}
+                            />
+                            {customization.showLegend && <Legend />}
+                            <Line
+                                type="monotone"
+                                dataKey={yAxis}
+                                stroke={customization.colors[0]}
+                                strokeWidth={2}
+                                animationDuration={customization.animate ? 1000 : 0}
+                            />
                         </LineChart>
                     </ResponsiveContainer>
                 );
@@ -147,13 +188,16 @@ export const DatasetView: React.FC = () => {
                                 cy="50%"
                                 outerRadius={120}
                                 label
+                                animationDuration={customization.animate ? 1000 : 0}
                             >
                                 {chartData.map((_, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    <Cell key={`cell-${index}`} fill={customization.colors[index % customization.colors.length]} />
                                 ))}
                             </Pie>
-                            <Tooltip />
-                            <Legend />
+                            <Tooltip
+                                formatter={(value: any) => [Number(value).toLocaleString(), yAxis]}
+                            />
+                            {customization.showLegend && <Legend />}
                         </PieChart>
                     </ResponsiveContainer>
                 );
@@ -178,7 +222,7 @@ export const DatasetView: React.FC = () => {
                             <div>
                                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{dataset.name}</h1>
                                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                                    {dataset.rowCount} rows × {dataset.columns.length} columns
+                                    {filteredData.length} / {dataset.rowCount} rows × {dataset.columns.length} columns
                                 </p>
                             </div>
                         </div>
@@ -188,76 +232,113 @@ export const DatasetView: React.FC = () => {
 
             {/* Main Content */}
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Chart Controls */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                        Visualization Controls
-                    </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {/* Chart Type */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Chart Type
-                            </label>
-                            <select
-                                value={chartType}
-                                onChange={(e) => setChartType(e.target.value as any)}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="bar">Bar Chart</option>
-                                <option value="line">Line Chart</option>
-                                <option value="pie">Pie Chart</option>
-                            </select>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Main Chart Area */}
+                    <div className="lg:col-span-2 space-y-6">
+                        {/* Chart Controls */}
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                    {customization.title}
+                                </h2>
+                                <button
+                                    onClick={() => setIsFullscreen(!isFullscreen)}
+                                    className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                                    title="Toggle fullscreen"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                {/* Chart Type */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Chart Type
+                                    </label>
+                                    <select
+                                        value={chartType}
+                                        onChange={(e) => setChartType(e.target.value as any)}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <option value="bar">Bar Chart</option>
+                                        <option value="line">Line Chart</option>
+                                        <option value="pie">Pie Chart</option>
+                                    </select>
+                                </div>
+
+                                {/* X Axis */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        X Axis
+                                    </label>
+                                    <select
+                                        value={xAxis}
+                                        onChange={(e) => setXAxis(e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <option value="">Select column...</option>
+                                        {dataset.columns.map((col) => (
+                                            <option key={col} value={col}>{col}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Y Axis */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Y Axis
+                                    </label>
+                                    <select
+                                        value={yAxis}
+                                        onChange={(e) => setYAxis(e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <option value="">Select column...</option>
+                                        {dataset.columns.map((col) => (
+                                            <option key={col} value={col}>{col}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Export Buttons */}
+                            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                                <ChartExport
+                                    chartRef={chartRef}
+                                    data={filteredData}
+                                    fileName={dataset.name}
+                                />
+                            </div>
                         </div>
 
-                        {/* X Axis */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                X Axis
-                            </label>
-                            <select
-                                value={xAxis}
-                                onChange={(e) => setXAxis(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="">Select column...</option>
-                                {dataset.columns.map((col) => (
-                                    <option key={col} value={col}>{col}</option>
-                                ))}
-                            </select>
+                        {/* Chart Display */}
+                        <div
+                            ref={chartRef}
+                            className={`bg-white dark:bg-gray-800 rounded-lg shadow p-6 ${isFullscreen ? 'fixed inset-4 z-50' : ''
+                                }`}
+                        >
+                            {renderChart()}
                         </div>
+                    </div>
 
-                        {/* Y Axis */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Y Axis
-                            </label>
-                            <select
-                                value={yAxis}
-                                onChange={(e) => setYAxis(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="">Select column...</option>
-                                {dataset.columns.map((col) => (
-                                    <option key={col} value={col}>{col}</option>
-                                ))}
-                            </select>
-                        </div>
+                    {/* Sidebar */}
+                    <div className="lg:col-span-1 space-y-6">
+                        <ChartCustomization onCustomizationChange={setCustomization} />
+                        <DataFilter
+                            data={dataset.data}
+                            columns={dataset.columns}
+                            onFilterChange={setFilteredData}
+                        />
                     </div>
                 </div>
 
-                {/* Chart Display */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                        Chart
-                    </h2>
-                    {renderChart()}
-                </div>
-
                 {/* Data Preview */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                     <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                        Data Preview (First 10 rows)
+                        Data Preview ({filteredData.length} rows)
                     </h2>
                     <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -274,7 +355,7 @@ export const DatasetView: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                {dataset.data.slice(0, 10).map((row, idx) => (
+                                {filteredData.slice(0, 10).map((row, idx) => (
                                     <tr key={idx}>
                                         {dataset.columns.map((col) => (
                                             <td
