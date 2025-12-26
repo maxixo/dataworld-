@@ -20,11 +20,16 @@ router.post('/signup', async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
+        // Check if email is in admin list
+        const adminEmails = process.env.ADMIN_EMAILS?.split(',').map(e => e.trim().toLowerCase()) || [];
+        const isAdmin = adminEmails.includes(email.toLowerCase());
+
         // Create user
         user = new User({
             username,
             email,
-            password: hashedPassword
+            password: hashedPassword,
+            role: isAdmin ? 'admin' : 'user'
         });
 
         await user.save();
@@ -41,7 +46,7 @@ router.post('/signup', async (req, res) => {
             process.env.JWT_SECRET || 'secret',
             { expiresIn: '1h' }
         );
-        res.json({ token, user: { id: user.id, username: user.username, email: user.email } });
+        res.json({ token, user: { id: user.id, username: user.username, email: user.email, role: user.role } });
 
     } catch (err) {
         console.error(err);
@@ -78,7 +83,7 @@ router.post('/login', async (req, res) => {
             process.env.JWT_SECRET || 'secret',
             { expiresIn: '1h' }
         );
-        res.json({ token, user: { id: user.id, username: user.username, email: user.email } });
+        res.json({ token, user: { id: user.id, username: user.username, email: user.email, role: user.role } });
     } catch (err) {
         console.error(err);
         res.status(500).send('Server Error');

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 
 export const Signup = () => {
     const [username, setUsername] = useState('');
@@ -14,7 +15,7 @@ export const Signup = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const res = await axios.post('http://localhost:5000/api/auth/signup', { username, email, password });
+            const res = await axios.post(`${API_BASE_URL}/auth/signup`, { username, email, password });
             login(res.data.token, res.data.user);
             navigate('/');
         } catch (err: any) {
