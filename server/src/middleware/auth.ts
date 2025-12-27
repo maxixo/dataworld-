@@ -6,7 +6,12 @@ interface AuthRequest extends Request {
 }
 
 export const auth = (req: Request, res: Response, next: NextFunction) => {
-    const token = req.header('x-auth-token');
+    let token = req.header('x-auth-token');
+    const authHeader = req.header('Authorization');
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+    }
 
     // Check for token
     if (!token) {

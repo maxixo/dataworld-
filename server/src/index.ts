@@ -34,11 +34,17 @@ app.get('/api/test-error', (req, res, next) => {
 app.use(errorHandler);
 
 const connectDB = async () => {
+    const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/dataworld';
+    console.log(`Attempting to connect to MongoDB...`);
+
     try {
-        await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/dataworld');
-        console.log('MongoDB Connected');
+        await mongoose.connect(mongoUri, {
+            serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of default 30s
+        });
+        console.log('MongoDB Connected successfully!');
     } catch (err) {
-        console.error('MongoDB connection error:', err);
+        console.error('CRITICAL: MongoDB connection error:', err);
+        console.log('Please check your network connection and Atlas IP allowlist.');
     }
 };
 

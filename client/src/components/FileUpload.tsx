@@ -157,6 +157,19 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
                 </label>
             </div>
 
+            <div className="mt-4 flex items-center justify-between px-2">
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                    Need a sample?{' '}
+                    <a
+                        href="/demo-data.csv"
+                        download="sample_data.csv"
+                        className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                    >
+                        Download demo-data.csv
+                    </a>
+                </div>
+            </div>
+
             {error && (
                 <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
                     <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
