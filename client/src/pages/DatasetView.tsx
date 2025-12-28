@@ -21,6 +21,7 @@ import {
 import { ChartExport } from '../components/ChartExport';
 import { ChartCustomization, ChartCustomization as ChartCustomizationType } from '../components/ChartCustomization';
 import { DataFilter } from '../components/DataFilter';
+import { AIInsights } from '../components/AIInsights';
 
 interface Dataset {
     _id: string;
@@ -378,6 +379,14 @@ export const DatasetView: React.FC = () => {
                             data={dataset.data}
                             columns={dataset.columns}
                             onFilterChange={setFilteredData}
+                        />
+                        <AIInsights
+                            data={filteredData}
+                            columns={dataset.columns}
+                            chartType={chartType}
+                            xAxis={xAxis}
+                            yAxis={yAxis}
+                            onInsightsGenerated={() => {}}
                         />
                     </div>
                 </div>

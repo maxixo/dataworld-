@@ -5,6 +5,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { Dashboard } from './pages/Dashboard';
+import { Landing } from './pages/Landing';
 import { DatasetView } from './pages/DatasetView';
 import { Blog } from './pages/Blog';
 import { BlogPost } from './pages/BlogPost';
@@ -31,8 +32,9 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/" element={<Landing />} />
             <Route
-              path="/"
+              path="/app"
               element={
                 <PrivateRoute>
                   <Dashboard />
@@ -91,6 +93,8 @@ function App() {
                 </PrivateRoute>
               }
             />
+            {/* Redirect unknown routes to landing */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </AuthProvider>
       </Router>

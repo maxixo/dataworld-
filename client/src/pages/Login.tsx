@@ -16,7 +16,7 @@ export const Login = () => {
         try {
             const res = await axios.post(`${API_BASE_URL}/auth/login`, { email, password });
             login(res.data.token, res.data.user);
-            navigate('/');
+            navigate('/app');
         } catch (err: any) {
             setError(err.response?.data?.message || 'Login failed');
         }
