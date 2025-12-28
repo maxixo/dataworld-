@@ -108,26 +108,27 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 className={`
-          border-2 border-dashed rounded-lg p-12 text-center transition-all duration-200
+          border-2 border-dashed rounded-2xl p-16 text-center transition-all duration-200 bg-gray-50 dark:bg-gray-800/50
           ${isDragging
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                        : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                        ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
+                        : 'border-gray-300 dark:border-gray-600'
                     }
-          ${isUploading ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}
+          ${isUploading ? 'opacity-50 pointer-events-none' : ''}
         `}
             >
                 <input
                     type="file"
-                    accept=".csv"
+                    accept=".csv,.json,.xlsx"
                     onChange={handleFileInput}
                     className="hidden"
                     id="file-upload"
                     disabled={isUploading}
                 />
-                <label htmlFor="file-upload" className="cursor-pointer">
-                    <div className="flex flex-col items-center gap-3">
+                <div className="flex flex-col items-center gap-4">
+                    {/* Purple Cloud Upload Icon */}
+                    <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
                         <svg
-                            className="w-16 h-16 text-gray-400 dark:text-gray-500"
+                            className="w-8 h-8 text-purple-600 dark:text-purple-400"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -139,34 +140,27 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
                                 d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                             />
                         </svg>
-                        {isUploading ? (
-                            <div className="text-blue-600 dark:text-blue-400 font-medium">
-                                Uploading {fileName}...
-                            </div>
-                        ) : (
-                            <>
-                                <div className="text-lg font-medium text-gray-700 dark:text-gray-300">
-                                    Drop your CSV file here, or click to browse
-                                </div>
-                                <div className="text-sm text-gray-500 dark:text-gray-400">
-                                    Supports CSV files up to 10MB
-                                </div>
-                            </>
-                        )}
                     </div>
-                </label>
-            </div>
 
-            <div className="mt-4 flex items-center justify-between px-2">
-                <div className="text-sm text-gray-500 dark:text-gray-400">
-                    Need a sample?{' '}
-                    <a
-                        href="/demo-data.csv"
-                        download="sample_data.csv"
-                        className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
-                    >
-                        Download demo-data.csv
-                    </a>
+                    {isUploading ? (
+                        <div className="text-purple-600 dark:text-purple-400 font-semibold text-lg">
+                            Uploading {fileName}...
+                        </div>
+                    ) : (
+                        <>
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                                Upload New Dataset
+                            </h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 max-w-md">
+                                Drag and drop CSV, JSON, or Excel files here to begin analysis.
+                            </p>
+                            <label htmlFor="file-upload">
+                                <div className="mt-2 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium cursor-pointer transition-colors shadow-lg hover:shadow-xl">
+                                    Browse Files
+                                </div>
+                            </label>
+                        </>
+                    )}
                 </div>
             </div>
 
