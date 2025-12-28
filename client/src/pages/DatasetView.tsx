@@ -122,55 +122,85 @@ export const DatasetView: React.FC = () => {
         }));
 
         const commonProps = {
-            margin: { top: 20, right: 30, left: 20, bottom: 5 }
+            margin: { top: 20, right: 30, left: 60, bottom: 60 }
         };
 
         switch (chartType) {
             case 'bar':
                 return (
-                    <ResponsiveContainer width="100%" height={400}>
+                    <ResponsiveContainer width="100%" height={450}>
                         <BarChart data={chartData} {...commonProps}>
-                            {customization.showGrid && <CartesianGrid strokeDasharray="3 3" />}
-                            <XAxis dataKey={xAxis} />
-                            <YAxis />
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                            <XAxis
+                                dataKey={xAxis}
+                                stroke="#666"
+                                tick={{ fill: '#666', fontSize: 12 }}
+                                angle={-45}
+                                textAnchor="end"
+                                height={80}
+                            />
+                            <YAxis
+                                stroke="#666"
+                                tick={{ fill: '#666', fontSize: 12 }}
+                                tickFormatter={(value) => Number(value).toLocaleString()}
+                            />
                             <Tooltip
                                 contentStyle={{
-                                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                    border: '1px solid #ccc',
-                                    borderRadius: '8px'
+                                    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    color: '#fff'
                                 }}
                                 formatter={(value: any) => [Number(value).toLocaleString(), yAxis]}
+                                labelFormatter={(label) => `${xAxis}: ${label}`}
                             />
                             {customization.showLegend && <Legend />}
                             <Bar
                                 dataKey={yAxis}
                                 fill={customization.colors[0]}
+                                radius={[6, 6, 0, 0]}
                                 animationDuration={customization.animate ? 1000 : 0}
+                                maxBarSize={50}
                             />
                         </BarChart>
                     </ResponsiveContainer>
                 );
             case 'line':
                 return (
-                    <ResponsiveContainer width="100%" height={400}>
+                    <ResponsiveContainer width="100%" height={450}>
                         <LineChart data={chartData} {...commonProps}>
-                            {customization.showGrid && <CartesianGrid strokeDasharray="3 3" />}
-                            <XAxis dataKey={xAxis} />
-                            <YAxis />
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                            <XAxis
+                                dataKey={xAxis}
+                                stroke="#666"
+                                tick={{ fill: '#666', fontSize: 12 }}
+                                angle={-45}
+                                textAnchor="end"
+                                height={80}
+                            />
+                            <YAxis
+                                stroke="#666"
+                                tick={{ fill: '#666', fontSize: 12 }}
+                                tickFormatter={(value) => Number(value).toLocaleString()}
+                            />
                             <Tooltip
                                 contentStyle={{
-                                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                    border: '1px solid #ccc',
-                                    borderRadius: '8px'
+                                    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    color: '#fff'
                                 }}
                                 formatter={(value: any) => [Number(value).toLocaleString(), yAxis]}
+                                labelFormatter={(label) => `${xAxis}: ${label}`}
                             />
                             {customization.showLegend && <Legend />}
                             <Line
                                 type="monotone"
                                 dataKey={yAxis}
                                 stroke={customization.colors[0]}
-                                strokeWidth={2}
+                                strokeWidth={3}
+                                dot={{ fill: customization.colors[0], strokeWidth: 2, r: 5 }}
+                                activeDot={{ r: 7, strokeWidth: 2 }}
                                 animationDuration={customization.animate ? 1000 : 0}
                             />
                         </LineChart>
