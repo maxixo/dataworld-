@@ -14,6 +14,10 @@ body {
   min-height: 100vh;
 }
 
+html {
+  color-scheme: light dark;
+}
+
 /* Utilities and visual helpers from the landing HTML */
 .glass-panel {
   background: rgba(255, 255, 255, 0.7);
@@ -21,9 +25,39 @@ body {
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.5);
 }
+
+.dark .glass-panel {
+  background: rgba(31, 41, 55, 0.7);
+  border: 1px solid rgba(107, 114, 128, 0.5);
+}
+
 .hero-gradient {
   background: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.1) 0%, rgba(6, 182, 212, 0.05) 50%, transparent 100%);
 }
+
+.dark .hero-gradient {
+  background: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.2) 0%, rgba(6, 182, 212, 0.1) 50%, transparent 100%);
+}
+
 .perspective-1000 {
   perspective: 1000px;
+}
+
+/* Smooth transitions for theme switching */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Ensure proper contrast in dark mode */
+@layer base {
+  @media (prefers-color-scheme: dark) {
+    input::placeholder {
+      @apply text-text-muted-dark;
+    }
+    textarea::placeholder {
+      @apply text-text-muted-dark;
+    }
+  }
 }
