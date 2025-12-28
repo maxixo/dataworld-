@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { MdClose, MdFullscreen } from 'react-icons/md';
 import { API_BASE_URL } from '../config/api';
 import {
     BarChart,
@@ -83,6 +84,25 @@ export const DatasetView: React.FC = () => {
         }
     }, [id]);
 
+    // Handle escape key to close fullscreen
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && isFullscreen) {
+                setIsFullscreen(false);
+            }
+        };
+
+        if (isFullscreen) {
+            document.addEventListener('keydown', handleEscape);
+            document.body.style.overflow = 'hidden';
+        }
+
+        return () => {
+            document.removeEventListener('keydown', handleEscape);
+            document.body.style.overflow = 'unset';
+        };
+    }, [isFullscreen]);
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
@@ -107,7 +127,7 @@ export const DatasetView: React.FC = () => {
         );
     }
 
-    const renderChart = () => {
+    const renderChart = (height: number = 450) => {
         if (!xAxis || !yAxis) {
             return (
                 <div className="text-center py-12 text-gray-500 dark:text-gray-400">
@@ -128,7 +148,7 @@ export const DatasetView: React.FC = () => {
         switch (chartType) {
             case 'bar':
                 return (
-                    <ResponsiveContainer width="100%" height={450}>
+                    <ResponsiveContainer width="100%" height={height}>
                         <BarChart data={chartData} {...commonProps}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
                             <XAxis
@@ -167,7 +187,7 @@ export const DatasetView: React.FC = () => {
                 );
             case 'line':
                 return (
-                    <ResponsiveContainer width="100%" height={450}>
+                    <ResponsiveContainer width="100%" height={height}>
                         <LineChart data={chartData} {...commonProps}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
                             <XAxis
@@ -208,7 +228,7 @@ export const DatasetView: React.FC = () => {
                 );
             case 'pie':
                 return (
-                    <ResponsiveContainer width="100%" height={400}>
+                    <ResponsiveContainer width="100%" height={height}>
                         <PieChart>
                             <Pie
                                 data={chartData}
@@ -216,7 +236,7 @@ export const DatasetView: React.FC = () => {
                                 nameKey={xAxis}
                                 cx="50%"
                                 cy="50%"
-                                outerRadius={120}
+                                outerRadius={height * 0.3}
                                 label
                                 animationDuration={customization.animate ? 1000 : 0}
                             >
@@ -272,13 +292,11 @@ export const DatasetView: React.FC = () => {
                                     {customization.title}
                                 </h2>
                                 <button
-                                    onClick={() => setIsFullscreen(!isFullscreen)}
-                                    className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-                                    title="Toggle fullscreen"
+                                    onClick={() => setIsFullscreen(true)}
+                                    className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                                    title="Expand to fullscreen"
                                 >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                                    </svg>
+                                    <MdFullscreen className="w-5 h-5" />
                                 </button>
                             </div>
 
@@ -347,10 +365,9 @@ export const DatasetView: React.FC = () => {
                         {/* Chart Display */}
                         <div
                             ref={chartRef}
-                            className={`bg-white dark:bg-gray-800 rounded-lg shadow p-6 ${isFullscreen ? 'fixed inset-4 z-50' : ''
-                                }`}
+                            className="bg-white dark:bg-gray-800 rounded-lg shadow p-6"
                         >
-                            {renderChart()}
+                            {renderChart(450)}
                         </div>
                     </div>
 
@@ -402,6 +419,63 @@ export const DatasetView: React.FC = () => {
                     </div>
                 </div>
             </main>
+
+            {/* Fullscreen Modal */}
+            {isFullscreen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 backdrop-blur-sm animate-fadeIn">
+                    <div className="relative w-full h-full max-w-[95vw] max-h-[95vh] m-4 bg-white dark:bg-gray-800 rounded-xl shadow-2xl overflow-hidden animate-scaleIn">
+                        {/* Modal Header */}
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                                {customization.title}
+                            </h3>
+                            <button
+                                onClick={() => setIsFullscreen(false)}
+                                className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors shadow-lg"
+                                title="Exit fullscreen (ESC)"
+                            >
+                                <MdClose className="w-5 h-5" />
+                                <span className="font-medium">Close</span>
+                            </button>
+                        </div>
+
+                        {/* Modal Content */}
+                        <div className="p-8 h-[calc(100%-73px)] overflow-auto">
+                            {renderChart(window.innerHeight - 250)}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <style>{`
+                @keyframes fadeIn {
+                    from {
+                        opacity: 0;
+                    }
+                    to {
+                        opacity: 1;
+                    }
+                }
+
+                @keyframes scaleIn {
+                    from {
+                        opacity: 0;
+                        transform: scale(0.95);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: scale(1);
+                    }
+                }
+
+                .animate-fadeIn {
+                    animation: fadeIn 0.2s ease-out;
+                }
+
+                .animate-scaleIn {
+                    animation: scaleIn 0.3s ease-out;
+                }
+            `}</style>
         </div>
     );
 };
