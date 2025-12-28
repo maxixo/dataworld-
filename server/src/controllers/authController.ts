@@ -31,8 +31,13 @@ export const signup = async (req: Request, res: Response) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // Check if email is in admin list
-        const adminEmails = process.env.ADMIN_EMAILS?.split(',').map(e => e.trim().toLowerCase()) || [];
+        // Check if email is in admin list with validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const adminEmails = process.env.ADMIN_EMAILS
+            ? process.env.ADMIN_EMAILS.split(',')
+                .map(e => e.trim().toLowerCase())
+                .filter(e => emailRegex.test(e))
+            : [];
         const isAdmin = adminEmails.includes(email);
 
         // Create user
@@ -54,7 +59,7 @@ export const signup = async (req: Request, res: Response) => {
 
         const token = jwt.sign(
             payload,
-            process.env.JWT_SECRET || 'secret',
+            process.env.JWT_SECRET!,
             { expiresIn: '1h' }
         );
         res.json({ token, user: { id: user.id, username: user.username, email: user.email, role: user.role } });
@@ -81,8 +86,8 @@ export const login = async (req: Request, res: Response) => {
         const email = String(req.body.email).toLowerCase().trim();
         const password = String(req.body.password);
 
-        // Check user
-        let user = await User.findOne({ email });
+        // Check user (explicitly select password since it's excluded by default)
+        let user = await User.findOne({ email }).select('+password');
         if (!user) {
             return res.status(400).json({ message: 'Invalid Credentials' });
         }
@@ -102,7 +107,7 @@ export const login = async (req: Request, res: Response) => {
 
         const token = jwt.sign(
             payload,
-            process.env.JWT_SECRET || 'secret',
+            process.env.JWT_SECRET!,
             { expiresIn: '1h' }
         );
         res.json({ token, user: { id: user.id, username: user.username, email: user.email, role: user.role } });

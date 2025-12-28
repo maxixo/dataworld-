@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { Dataset } from '../models/Dataset';
-import redisClient from '../config/redis';
 
 export const uploadDataset = async (req: Request, res: Response) => {
     try {
@@ -19,9 +18,6 @@ export const uploadDataset = async (req: Request, res: Response) => {
         });
 
         const savedDataset = await newDataset.save();
-
-        // Cache the new dataset
-        await redisClient.setex(`dataset:${savedDataset.id}`, 3600, JSON.stringify(savedDataset));
 
         res.json(savedDataset);
     } catch (err) {
@@ -67,20 +63,18 @@ export const getDatasetById = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
 
-        // Check cache
-        const cachedDataset = await redisClient.get(`dataset:${id}`);
-        if (cachedDataset) {
-            console.log('Serving from cache');
-            return res.json(JSON.parse(cachedDataset));
-        }
+        // @ts-ignore
+        const userId = req.user.id;
 
         const dataset = await Dataset.findById(id);
         if (!dataset) {
             return res.status(404).json({ message: 'Dataset not found' });
         }
 
-        // Cache result
-        await redisClient.setex(`dataset:${id}`, 3600, JSON.stringify(dataset));
+        // Check ownership - users can only access their own datasets
+        if (dataset.user.toString() !== userId) {
+            return res.status(403).json({ message: 'Unauthorized access to dataset' });
+        }
 
         res.json(dataset);
     } catch (err) {
