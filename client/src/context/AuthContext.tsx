@@ -1,11 +1,12 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import axios from 'axios';
+import { createContext, useContext, useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
 
 interface User {
     id: string;
     username: string;
     email: string;
     role: string;
+    createdAt?: string;
 }
 
 interface AuthContextType {

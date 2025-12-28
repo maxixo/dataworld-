@@ -10,6 +10,8 @@ import { Blog } from './pages/Blog';
 import { BlogPost } from './pages/BlogPost';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { BlogEditor } from './pages/BlogEditor';
+import { Settings } from './pages/Settings';
+import { UserProfile } from './pages/UserProfile';
 
 // Protected Route Component
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -42,6 +44,22 @@ function App() {
               element={
                 <PrivateRoute>
                   <DatasetView />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <PrivateRoute>
+                  <Settings />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <PrivateRoute>
+                  <UserProfile />
                 </PrivateRoute>
               }
             />

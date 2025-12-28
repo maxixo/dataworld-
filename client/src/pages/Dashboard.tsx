@@ -32,40 +32,7 @@ export const Dashboard: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [storageUsed, setStorageUsed] = useState(0);
-
-    // Mock activities for now
-    const [activities] = useState<ActivityItem[]>([
-        {
-            id: '1',
-            type: 'upload',
-            title: 'Uploaded Q3 Financials',
-            timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(), // 5 mins ago
-            status: 'completed',
-            user: 'By Alex'
-        },
-        {
-            id: '2',
-            type: 'process',
-            title: 'Processed User Churn',
-            timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
-            status: 'automated'
-        },
-        {
-            id: '3',
-            type: 'error',
-            title: 'Sales_Data_Raw.csv',
-            timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(), // 5 hours ago
-            status: 'failed',
-            errorMessage: "Error: Column 'revenue' missing"
-        },
-        {
-            id: '4',
-            type: 'share',
-            title: 'Shared Report #204',
-            timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // Yesterday
-            user: 'With Team'
-        }
-    ]);
+    const [activities, setActivities] = useState<ActivityItem[]>([]);
 
     const fetchDatasets = async () => {
         try {
@@ -94,6 +61,22 @@ export const Dashboard: React.FC = () => {
     useEffect(() => {
         fetchDatasets();
     }, []);
+
+    useEffect(() => {
+        // Generate activities from datasets
+        if (datasets.length > 0) {
+            const activityItems: ActivityItem[] = datasets.map((dataset) => ({
+                id: dataset._id,
+                type: 'upload' as const,
+                title: `Uploaded ${dataset.name}`,
+                timestamp: dataset.createdAt || new Date().toISOString(),
+                status: 'completed' as const,
+                user: `${dataset.rowCount} rows, ${dataset.columns.length} columns`
+            })).slice(0, 10); // Show only 10 most recent
+
+            setActivities(activityItems);
+        }
+    }, [datasets]);
 
     useEffect(() => {
         // Filter datasets based on active filter
