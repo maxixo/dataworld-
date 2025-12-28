@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import dns from 'dns';
+import { promises as dnsPromises } from 'dns';
 
 import authRoutes from './routes/auth';
 import datasetRoutes from './routes/datasets';
@@ -51,6 +53,28 @@ app.use(errorHandler);
 const connectDB = async () => {
     const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/dataworld';
     console.log(`Attempting to connect to MongoDB...`);
+
+    // Ensure predictable DNS resolution for SRV lookups (Atlas uses SRV)
+    try {
+        const dnsServers = [process.env.DNS_SERVER1 || '1.1.1.1', process.env.DNS_SERVER2 || '8.8.8.8'];
+        dns.setServers(dnsServers);
+        console.log('Using DNS servers:', dns.getServers());
+    } catch (e) {
+        console.warn('Could not set DNS servers:', e);
+    }
+
+    // If using mongodb+srv, optionally validate SRV resolution first to give clearer errors
+    if (mongoUri.startsWith('mongodb+srv://')) {
+        try {
+            const host = mongoUri.replace('mongodb+srv://', '').split('/')[0];
+            const srvName = `_mongodb._tcp.${host}`;
+            const srv = await dnsPromises.resolveSrv(srvName);
+            console.log(`SRV records for ${srvName}:`, srv.map(s => `${s.name}:${s.port}`));
+        } catch (err) {
+            console.error(`SRV lookup failed for MongoDB host. Error:`, err);
+            console.log('Hint: DNS SRV resolution failed (ESERVFAIL). .');
+        }
+    }
 
     try {
         await mongoose.connect(mongoUri, {
