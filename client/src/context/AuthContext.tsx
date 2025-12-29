@@ -5,7 +5,6 @@ interface User {
     id: string;
     username: string;
     email: string;
-    role: string;
     createdAt?: string;
 }
 
@@ -15,7 +14,6 @@ interface AuthContextType {
     login: (token: string, user: User) => void;
     logout: () => void;
     isAuthenticated: boolean;
-    isAdmin: boolean;
     loading: boolean;
 }
 
@@ -73,7 +71,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             login,
             logout,
             isAuthenticated: !!token,
-            isAdmin: user?.role === 'admin',
             loading
         }}>
             {children}

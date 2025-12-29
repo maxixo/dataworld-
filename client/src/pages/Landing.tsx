@@ -401,9 +401,6 @@ export const Landing: React.FC = () => {
               <a className="text-sm leading-6 text-text-muted-light dark:text-text-muted-dark hover:text-primary transition-colors" href="#">About</a>
             </div>
             <div className="pb-6">
-              <a className="text-sm leading-6 text-text-muted-light dark:text-text-muted-dark hover:text-primary transition-colors" href="#">Blog</a>
-            </div>
-            <div className="pb-6">
               <a className="text-sm leading-6 text-text-muted-light dark:text-text-muted-dark hover:text-primary transition-colors" href="#">Jobs</a>
             </div>
             <div className="pb-6">

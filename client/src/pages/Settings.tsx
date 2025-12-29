@@ -4,7 +4,7 @@ import { useTheme } from '../context/ThemeContext';
 import { Header } from '../components/Header';
 
 export const Settings: React.FC = () => {
-    const { user, logout, isAdmin } = useAuth();
+    const { user, logout } = useAuth();
     const { theme, toggleTheme } = useTheme();
     const [emailNotifications, setEmailNotifications] = useState(true);
     const [datasetAlerts, setDatasetAlerts] = useState(true);
@@ -19,11 +19,10 @@ export const Settings: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <Header
-                username={user?.username || 'User'}
-                onLogout={logout}
-                isAdmin={isAdmin}
-            />
+                <Header
+                    username={user?.username || 'User'}
+                    onLogout={logout}
+                />
 
             <main className="max-w-4xl mx-auto px-6 py-8">
                 {/* Header */}

@@ -11,10 +11,6 @@ import { Signup } from './pages/Signup';
 import { Dashboard } from './pages/Dashboard';
 import { Landing } from './pages/Landing';
 import { DatasetView } from './pages/DatasetView';
-import { Blog } from './pages/Blog';
-import { BlogPost } from './pages/BlogPost';
-import { AdminDashboard } from './pages/AdminDashboard';
-import { BlogEditor } from './pages/BlogEditor';
 import { Settings } from './pages/Settings';
 import { UserProfile } from './pages/UserProfile';
 
@@ -69,34 +65,6 @@ function App() {
               element={
                 <PrivateRoute>
                   <UserProfile />
-                </PrivateRoute>
-              }
-            />
-            {/* Public Blog Routes */}
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/blog/:id" element={<BlogPost />} />
-            {/* Admin Routes */}
-            <Route
-              path="/admin"
-              element={
-                <PrivateRoute>
-                  <AdminDashboard />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/admin/blog/new"
-              element={
-                <PrivateRoute>
-                  <BlogEditor />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/admin/blog/edit/:id"
-              element={
-                <PrivateRoute>
-                  <BlogEditor />
                 </PrivateRoute>
               }
             />

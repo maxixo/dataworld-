@@ -5,15 +5,13 @@ import { useTheme } from '../context/ThemeContext';
 interface HeaderProps {
     username: string;
     onLogout: () => void;
-    isAdmin?: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({ username, onLogout, isAdmin }) => {
+export const Header: React.FC<HeaderProps> = ({ username, onLogout }) => {
     const location = useLocation();
     const navigate = useNavigate();
     const { theme, toggleTheme } = useTheme();
     const [userMenuOpen, setUserMenuOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
 
     const navItems = [
         { name: 'Dashboard', path: '/' },
@@ -31,9 +29,8 @@ export const Header: React.FC<HeaderProps> = ({ username, onLogout, isAdmin }) =
         <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
             <div className="px-6 py-4">
                 <div className="flex items-center justify-between">
-                    {/* Left Section: Logo + Search */}
-                    <div className="flex items-center gap-6 flex-1">
-                        {/* Logo */}
+                    {/* Left Section: Logo */}
+                    <div className="flex items-center gap-6">
                         <Link to="/" className="flex items-center gap-2">
                             <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
                                 <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -42,20 +39,6 @@ export const Header: React.FC<HeaderProps> = ({ username, onLogout, isAdmin }) =
                             </div>
                             <span className="text-xl font-bold text-gray-900 dark:text-white">DataWorld</span>
                         </Link>
-
-                        {/* Search Bar */}
-                        <div className="hidden md:flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg px-4 py-2 w-96">
-                            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                            <input
-                                type="text"
-                                placeholder="Search datasets..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="ml-3 bg-transparent border-none outline-none w-full text-gray-700 dark:text-gray-200 placeholder-gray-400"
-                            />
-                        </div>
                     </div>
 
                     {/* Center Section: Navigation */}
@@ -79,23 +62,6 @@ export const Header: React.FC<HeaderProps> = ({ username, onLogout, isAdmin }) =
 
                     {/* Right Section: Icons + User */}
                     <div className="flex items-center gap-4">
-                        {/* Blog Link */}
-                        <Link
-                            to="/blog"
-                            className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm font-medium"
-                        >
-                            Blog
-                        </Link>
-
-                        {isAdmin && (
-                            <Link
-                                to="/admin"
-                                className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 text-sm font-medium"
-                            >
-                                Admin
-                            </Link>
-                        )}
-
                         {/* Theme Toggle */}
                         <button 
                             onClick={toggleTheme}

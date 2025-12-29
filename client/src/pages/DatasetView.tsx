@@ -21,7 +21,6 @@ import {
 import { ChartExport } from '../components/ChartExport';
 import { ChartCustomization, ChartCustomization as ChartCustomizationType } from '../components/ChartCustomization';
 import { DataFilter } from '../components/DataFilter';
-import { AIInsights } from '../components/AIInsights';
 
 interface Dataset {
     _id: string;
@@ -228,25 +227,32 @@ export const DatasetView: React.FC = () => {
                     </ResponsiveContainer>
                 );
             case 'pie':
+                // Transform data for pie chart to use consistent property names
+                const pieChartData = chartData.map((item) => ({
+                    name: item[xAxis],
+                    value: parseFloat(item[yAxis]) || 0
+                })).filter(item => item.value > 0); // Only include items with positive values
+                
                 return (
                     <ResponsiveContainer width="100%" height={height}>
                         <PieChart>
                             <Pie
-                                data={chartData}
-                                dataKey={yAxis}
-                                nameKey={xAxis}
+                                data={pieChartData}
+                                dataKey="value"
+                                nameKey="name"
                                 cx="50%"
                                 cy="50%"
                                 outerRadius={height * 0.3}
-                                label
+                                label={({name, percent}) => `${name}: ${((percent || 0) * 100).toFixed(1)}%`}
                                 animationDuration={customization.animate ? 1000 : 0}
                             >
-                                {chartData.map((_, index) => (
+                                {pieChartData.map((_, index) => (
                                     <Cell key={`cell-${index}`} fill={customization.colors[index % customization.colors.length]} />
                                 ))}
                             </Pie>
                             <Tooltip
                                 formatter={(value: any) => [Number(value).toLocaleString(), yAxis]}
+                                labelFormatter={(label) => `${xAxis}: ${label}`}
                             />
                             {customization.showLegend && <Legend />}
                         </PieChart>
@@ -379,14 +385,6 @@ export const DatasetView: React.FC = () => {
                             data={dataset.data}
                             columns={dataset.columns}
                             onFilterChange={setFilteredData}
-                        />
-                        <AIInsights
-                            data={filteredData}
-                            columns={dataset.columns}
-                            chartType={chartType}
-                            xAxis={xAxis}
-                            yAxis={yAxis}
-                            onInsightsGenerated={() => {}}
                         />
                     </div>
                 </div>

@@ -25,7 +25,7 @@ interface Dataset {
 }
 
 export const Dashboard: React.FC = () => {
-    const { user, logout, isAdmin } = useAuth();
+    const { user, logout } = useAuth();
     const [datasets, setDatasets] = useState<Dataset[]>([]);
     const [filteredDatasets, setFilteredDatasets] = useState<Dataset[]>([]);
     const [activeFilter, setActiveFilter] = useState<FilterType>('ALL');
@@ -124,11 +124,10 @@ export const Dashboard: React.FC = () => {
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
             {/* Header */}
-            <Header
-                username={user?.username || 'User'}
-                onLogout={logout}
-                isAdmin={isAdmin}
-            />
+                <Header
+                    username={user?.username || 'User'}
+                    onLogout={logout}
+                />
 
             {/* Main Content */}
             <main className="max-w-[1400px] mx-auto px-6 py-8">

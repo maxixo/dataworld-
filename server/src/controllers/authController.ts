@@ -33,21 +33,11 @@ export const signup = async (req: Request, res: Response) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // Check if email is in admin list with validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const adminEmails = process.env.ADMIN_EMAILS
-            ? process.env.ADMIN_EMAILS.split(',')
-                .map(e => e.trim().toLowerCase())
-                .filter(e => emailRegex.test(e))
-            : [];
-        const isAdmin = adminEmails.includes(email);
-
         // Create user
         user = new User({
             username,
             email,
-            password: hashedPassword,
-            role: isAdmin ? 'admin' : 'user'
+            password: hashedPassword
         });
 
         await user.save();
@@ -64,7 +54,7 @@ export const signup = async (req: Request, res: Response) => {
             process.env.JWT_SECRET!,
             { expiresIn: '1h' }
         );
-        res.json({ token, user: { id: user.id, username: user.username, email: user.email, role: user.role } });
+        res.json({ token, user: { id: user.id, username: user.username, email: user.email } });
 
     } catch (err) {
         console.error(err);
@@ -103,20 +93,10 @@ export const googleAuth = async (req: Request, res: Response) => {
             const username = displayName 
                 ? String(displayName).split(' ')[0].trim() 
                 : sanitizedEmail.split('@')[0];
-            
-            // Check if email is in admin list
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            const adminEmails = process.env.ADMIN_EMAILS
-                ? process.env.ADMIN_EMAILS.split(',')
-                    .map(e => e.trim().toLowerCase())
-                    .filter(e => emailRegex.test(e))
-                : [];
-            const isAdmin = adminEmails.includes(sanitizedEmail);
 
             user = new User({
                 username,
                 email: sanitizedEmail,
-                role: isAdmin ? 'admin' : 'user',
                 googleId: sanitizedUid,
                 picture: photoURL || undefined,
                 password: '', // No password for OAuth users
@@ -165,7 +145,6 @@ export const googleAuth = async (req: Request, res: Response) => {
                 id: user.id,
                 username: user.username,
                 email: user.email,
-                role: user.role,
                 picture: user.picture,
                 googleId: user.googleId,
                 createdAt: user.createdAt
@@ -225,7 +204,7 @@ export const login = async (req: Request, res: Response) => {
             process.env.JWT_SECRET!,
             { expiresIn: '1h' }
         );
-        res.json({ token, user: { id: user.id, username: user.username, email: user.email, role: user.role } });
+        res.json({ token, user: { id: user.id, username: user.username, email: user.email } });
     } catch (err) {
         console.error(err);
         res.status(500).send('Server Error');

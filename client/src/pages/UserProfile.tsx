@@ -5,7 +5,7 @@ import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
 
 export const UserProfile: React.FC = () => {
-    const { user, logout, isAdmin } = useAuth();
+    const { user, logout } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [username, setUsername] = useState(user?.username || '');
     const [email, setEmail] = useState(user?.email || '');
@@ -44,7 +44,6 @@ export const UserProfile: React.FC = () => {
             <Header
                 username={user?.username || 'User'}
                 onLogout={logout}
-                isAdmin={isAdmin}
             />
 
             <main className="max-w-4xl mx-auto px-6 py-8">

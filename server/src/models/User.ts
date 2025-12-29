@@ -17,11 +17,6 @@ const UserSchema = new mongoose.Schema({
     // Google OAuth fields
     googleId: { type: String, required: false },
     picture: { type: String, required: false },
-    role: {
-        type: String,
-        enum: ['user', 'admin'],
-        default: 'user'  // Default role for new users
-    },
     // Security fields
     isEmailVerified: { type: Boolean, default: false },
     emailVerificationToken: String,
