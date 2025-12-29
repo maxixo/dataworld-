@@ -1,5 +1,9 @@
 import React from 'react';
+import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { store, persistor } from './store';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { Login } from './pages/Login';
@@ -14,6 +18,8 @@ import { BlogEditor } from './pages/BlogEditor';
 import { Settings } from './pages/Settings';
 import { UserProfile } from './pages/UserProfile';
 
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+
 // Protected Route Component
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -26,10 +32,13 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
 
 function App() {
   return (
-    <ThemeProvider>
-      <Router>
-        <AuthProvider>
-          <Routes>
+    <Provider store={store}>
+      <PersistGate loading={<div>Loading...</div>} persistor={persistor}>
+        <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+          <ThemeProvider>
+            <Router>
+              <AuthProvider>
+                <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/" element={<Landing />} />
@@ -98,7 +107,10 @@ function App() {
           </Routes>
         </AuthProvider>
       </Router>
-    </ThemeProvider>
+          </ThemeProvider>
+        </GoogleOAuthProvider>
+      </PersistGate>
+    </Provider>
   );
 }
 

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
+import { useGoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
+import { useReduxAuth } from '../hooks/useReduxAuth';
 
 type StrengthProps = { password: string };
 
@@ -47,6 +49,7 @@ export const Login = () => {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const { login } = useAuth();
+    const { handleGoogleLogin, loading: reduxLoading, error: reduxError } = useReduxAuth();
     const navigate = useNavigate();
     const [error, setError] = useState('');
 
@@ -60,6 +63,24 @@ export const Login = () => {
             setError(err.response?.data?.message || 'Login failed');
         }
     };
+
+    const googleLogin = useGoogleLogin({
+        onSuccess: async (codeResponse) => {
+            try {
+                setError('');
+                const response = await handleGoogleLogin(codeResponse.access_token);
+                // Also update AuthContext for compatibility
+                login(response.token, response.user);
+                navigate('/app');
+            } catch (err: any) {
+                setError(err.message || 'Google login failed');
+            }
+        },
+        onError: () => {
+            setError('Google login failed. Please try again.');
+        },
+        flow: 'implicit',
+    });
 
     return (
         <div className="bg-background-light dark:bg-background-dark font-display text-text-main-light dark:text-text-main-dark antialiased transition-colors duration-200 min-h-screen">
@@ -149,16 +170,26 @@ export const Login = () => {
                                 <div className="flex-grow border-t border-border-light dark:border-border-dark"></div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
-                                <button type="button" className="flex items-center justify-center gap-2 px-4 py-2.5 border border-border-light dark:border-border-dark rounded-lg bg-surface-light dark:bg-surface-dark text-text-main-light dark:text-text-main-dark hover:bg-background-light dark:hover:bg-background-dark/50 transition-colors">
-                                    <svg aria-hidden="true" className="h-5 w-5" viewBox="0 0 24 24"><path d="M12.0003 20.45c4.6667 0 7.9167-3.25 7.9167-8.1 0-.6-.05-1.15-.15-1.7h-7.7667v3.25h4.4833c-.2 1.2-1.25 3.35-4.4833 3.35-2.7 0-4.9167-2.15-4.9167-4.8 0-2.65 2.2167-4.8 4.9167-4.8 1.5167 0 2.5333.65 3.1167 1.2l2.35-2.35c-1.5-1.4-3.4667-2.2-5.4667-2.2-4.5 0-8.15 3.65-8.15 8.15 0 4.5 3.65 8.15 8.15 8.15z" fill="currentColor"></path></svg>
-                                    <span className="text-sm font-medium">Google</span>
-                                </button>
-                                <button type="button" className="flex items-center justify-center gap-2 px-4 py-2.5 border border-border-light dark:border-border-dark rounded-lg bg-surface-light dark:bg-surface-dark text-text-main-light dark:text-text-main-dark hover:bg-background-light dark:hover:bg-background-dark/50 transition-colors">
-                                    <svg aria-hidden="true" className="h-5 w-5" viewBox="0 0 23 23"><path d="M0 0h23v23H0z" fill="#f3f3f3"></path><path d="M1 1h10v10H1z" fill="#f35325"></path><path d="M12 1h10v10H12z" fill="#81bc06"></path><path d="M1 12h10v10H1z" fill="#05a6f0"></path><path d="M12 12h10v10H12z" fill="#ffba08"></path></svg>
-                                    <span className="text-sm font-medium">Microsoft</span>
+                            <div className="flex w-full">
+                                <button 
+                                    type="button" 
+                                    onClick={() => googleLogin()}
+                                    disabled={reduxLoading}
+                                    className="flex items-center justify-center gap-2 px-4 py-2.5 border border-border-light dark:border-border-dark rounded-lg bg-surface-light dark:bg-surface-dark text-text-main-light dark:text-text-main-dark hover:bg-background-light dark:hover:bg-background-dark/50 transition-colors w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {reduxLoading ? (
+                                        <span className="material-symbols-outlined animate-spin">hourglass_empty</span>
+                                    ) : (
+                                        <svg aria-hidden="true" className="h-5 w-5" viewBox="0 0 24 24"><path d="M12.0003 20.45c4.6667 0 7.9167-3.25 7.9167-8.1 0-.6-.05-1.15-.15-1.7h-7.7667v3.25h4.4833c-.2 1.2-1.25 3.35-4.4833 3.35-2.7 0-4.9167-2.15-4.9167-4.8 0-2.65 2.2167-4.8 4.9167-4.8 1.5167 0 2.5333.65 3.1167 1.2l2.35-2.35c-1.5-1.4-3.4667-2.2-5.4667-2.2-4.5 0-8.15 3.65-8.15 8.15 0 4.5 3.65 8.15 8.15 8.15z" fill="currentColor"></path></svg>
+                                    )}
+                                    <span className="text-sm font-medium">{reduxLoading ? 'Signing in...' : 'Continue with Google'}</span>
                                 </button>
                             </div>
+                            {(error || reduxError) && (
+                                <div className="mt-4 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
+                                    {error || reduxError}
+                                </div>
+                            )}
                         </div>
 
                         <div className="text-center text-xs text-text-muted-light dark:text-text-muted-dark">
