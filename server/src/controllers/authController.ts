@@ -4,6 +4,8 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { validationResult } from 'express-validator';
 
+// Initialize Firebase Admin if credentials are provided
+
 /**
  * @desc    Register user
  * @route   POST /api/auth/signup
@@ -71,6 +73,115 @@ export const signup = async (req: Request, res: Response) => {
 };
 
 /**
+ * @desc    Authenticate user with Firebase (handles both login and signup automatically)
+ * @route   POST /api/auth/google
+ * @access  Public
+ */
+export const googleAuth = async (req: Request, res: Response) => {
+    try {
+        const { email, displayName, photoURL, uid } = req.body;
+
+        // Validate required fields
+        if (!email || !uid) {
+            return res.status(400).json({ message: 'Email and UID are required' });
+        }
+
+        // Sanitize inputs
+        const sanitizedEmail = String(email).toLowerCase().trim();
+        const sanitizedUid = String(uid).trim();
+
+        // Check if user exists
+        let user = await User.findOne({ 
+            $or: [
+                { email: sanitizedEmail },
+                { googleId: sanitizedUid }
+            ]
+        });
+        
+        if (!user) {
+            // Create new user
+            const username = displayName 
+                ? String(displayName).split(' ')[0].trim() 
+                : sanitizedEmail.split('@')[0];
+            
+            // Check if email is in admin list
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const adminEmails = process.env.ADMIN_EMAILS
+                ? process.env.ADMIN_EMAILS.split(',')
+                    .map(e => e.trim().toLowerCase())
+                    .filter(e => emailRegex.test(e))
+                : [];
+            const isAdmin = adminEmails.includes(sanitizedEmail);
+
+            user = new User({
+                username,
+                email: sanitizedEmail,
+                role: isAdmin ? 'admin' : 'user',
+                googleId: sanitizedUid,
+                picture: photoURL || undefined,
+                password: '', // No password for OAuth users
+            });
+            await user.save();
+            console.log('✅ New Google user created:', user.email);
+        } else {
+            // Update existing user with Google info if needed
+            let updated = false;
+            
+            if (!user.googleId) {
+                user.googleId = sanitizedUid;
+                updated = true;
+            }
+            if (!user.picture && photoURL) {
+                user.picture = photoURL;
+                updated = true;
+            }
+            if (!user.username && displayName) {
+                user.username = displayName;
+                updated = true;
+            }
+            
+            if (updated) {
+                await user.save();
+                console.log('✅ User updated with Google info:', user.email);
+            }
+        }
+
+        // Create JWT
+        const tokenPayload = {
+            user: {
+                id: user.id
+            }
+        };
+
+        const token = jwt.sign(
+            tokenPayload,
+            process.env.JWT_SECRET!,
+            { expiresIn: '7d' } // Extended for better UX
+        );
+
+        res.json({
+            token,
+            user: {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                picture: user.picture,
+                googleId: user.googleId,
+                createdAt: user.createdAt
+            }
+        });
+    } catch (err: any) {
+        console.error('❌ Google auth error:', err);
+        res.status(500).json({ 
+            message: 'Google authentication failed',
+            error: process.env.NODE_ENV === 'development' ? err.message : undefined
+        });
+    }
+};
+
+
+/**
  * @desc    Authenticate user & get token
  * @route   POST /api/auth/login
  * @access  Public
@@ -92,7 +203,11 @@ export const login = async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'Invalid Credentials' });
         }
 
-        // Validate password
+        // Validate password (OAuth users won't have a password)
+        if (!user.password) {
+            return res.status(400).json({ message: 'Please use Google login for this account' });
+        }
+        
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(400).json({ message: 'Invalid Credentials' });

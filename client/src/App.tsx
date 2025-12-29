@@ -1,7 +1,7 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
-import { GoogleOAuthProvider } from '@react-oauth/google';
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { store, persistor } from './store';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -18,7 +18,6 @@ import { BlogEditor } from './pages/BlogEditor';
 import { Settings } from './pages/Settings';
 import { UserProfile } from './pages/UserProfile';
 
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
 // Protected Route Component
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -34,7 +33,6 @@ function App() {
   return (
     <Provider store={store}>
       <PersistGate loading={<div>Loading...</div>} persistor={persistor}>
-        <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
           <ThemeProvider>
             <Router>
               <AuthProvider>
@@ -108,7 +106,6 @@ function App() {
         </AuthProvider>
       </Router>
           </ThemeProvider>
-        </GoogleOAuthProvider>
       </PersistGate>
     </Provider>
   );

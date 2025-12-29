@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { useGoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
-import { useReduxAuth } from '../hooks/useReduxAuth';
 
 type StrengthProps = { password: string };
 function PasswordStrength({ password }: StrengthProps) {
@@ -133,18 +131,6 @@ export const Signup: React.FC = () => {
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-5 w-full">
-                            <div className="flex w-full">
-                                <button type="button" className="flex items-center justify-center gap-2 px-4 py-2.5 border border-border-light dark:border-border-dark rounded-lg bg-surface-light dark:bg-surface-dark text-text-main-light dark:text-text-main-dark hover:bg-background-light dark:hover:bg-background-dark/50 transition-colors w-full">
-                                    <svg aria-hidden="true" className="h-5 w-5" viewBox="0 0 24 24"><path d="M12.0003 20.45c4.6667 0 7.9167-3.25 7.9167-8.1 0-.6-.05-1.15-.15-1.7h-7.7667v3.25h4.4833c-.2 1.2-1.25 3.35-4.4833 3.35-2.7 0-4.9167-2.15-4.9167-4.8 0-2.65 2.2167-4.8 4.9167-4.8 1.5167 0 2.5333.65 3.1167 1.2l2.35-2.35c-1.5-1.4-3.4667-2.2-5.4667-2.2-4.5 0-8.15 3.65-8.15 8.15 0 4.5 3.65 8.15 8.15 8.15z" fill="currentColor"></path></svg>
-                                    <span className="text-sm font-medium">Continue with Google</span>
-                                </button>
-                            </div>
-
-                            <div className="relative flex py-2 items-center">
-                                <div className="flex-grow border-t border-border-light dark:border-border-dark"></div>
-                                <span className="flex-shrink-0 mx-4 text-xs font-semibold text-text-muted-light dark:text-text-muted-dark uppercase tracking-wider">Or continue with</span>
-                                <div className="flex-grow border-t border-border-light dark:border-border-dark"></div>
-                            </div>
 
                             <div className="space-y-4">
                                 <div>

@@ -1,7 +1,7 @@
 import express from 'express';
 import { body } from 'express-validator';
 import { authRateLimiter } from '../middleware/rateLimiter';
-import { signup, login } from '../controllers/authController';
+import { signup, login, googleAuth } from '../controllers/authController';
 
 const router = express.Router();
 
@@ -37,5 +37,12 @@ router.post(
     ],
     login
 );
+
+/**
+ * @route   POST api/auth/google
+ * @desc    Authenticate user with Firebase (handles login/signup automatically)
+ * @access  Public
+ */
+router.post('/google', authRateLimiter, googleAuth);
 
 export default router;

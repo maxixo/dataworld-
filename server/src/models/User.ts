@@ -11,9 +11,12 @@ const UserSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: true,
+        required: false,
         select: false  // Prevent password from being returned in queries by default
     },
+    // Google OAuth fields
+    googleId: { type: String, required: false },
+    picture: { type: String, required: false },
     role: {
         type: String,
         enum: ['user', 'admin'],

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { useGoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
-import { useReduxAuth } from '../hooks/useReduxAuth';
+import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { auth } from '../config/firebase';
+import { useReduxAuth } from '../hooks/useReduxAuth'; // ADD THIS IMPORT
 
 type StrengthProps = { password: string };
 
@@ -48,13 +49,22 @@ export const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const { login } = useAuth();
-    const { handleGoogleLogin, loading: reduxLoading, error: reduxError } = useReduxAuth();
-    const navigate = useNavigate();
     const [error, setError] = useState('');
+    
+    const { login } = useAuth();
+    const navigate = useNavigate();
+    
+    // Use Redux for Google auth
+    const { 
+        loading: reduxLoading, 
+        error: reduxError, 
+        handleGoogleAuth 
+    } = useReduxAuth();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError('');
+        
         try {
             const res = await axios.post(`${API_BASE_URL}/auth/login`, { email, password });
             login(res.data.token, res.data.user);
@@ -64,23 +74,42 @@ export const Login = () => {
         }
     };
 
-    const googleLogin = useGoogleLogin({
-        onSuccess: async (codeResponse) => {
-            try {
-                setError('');
-                const response = await handleGoogleLogin(codeResponse.access_token);
-                // Also update AuthContext for compatibility
-                login(response.token, response.user);
-                navigate('/app');
-            } catch (err: any) {
-                setError(err.message || 'Google login failed');
-            }
-        },
-        onError: () => {
-            setError('Google login failed. Please try again.');
-        },
-        flow: 'implicit',
-    });
+    const handleGoogleSignIn = async () => {
+        setError('');
+        
+        try {
+            console.log('🔵 Starting Google sign-in...');
+            
+            // 1. Sign in with Firebase popup
+            const provider = new GoogleAuthProvider();
+            const result = await signInWithPopup(auth, provider);
+            
+            console.log('🟢 Firebase sign-in successful:', result.user.email);
+            
+            // 2. Extract user info from Firebase
+            const firebaseUser = result.user;
+            
+            // 3. Send user data through Redux (which calls the backend)
+            const response = await handleGoogleAuth({
+                email: firebaseUser.email!,
+                displayName: firebaseUser.displayName,
+                photoURL: firebaseUser.photoURL,
+                uid: firebaseUser.uid,
+            });
+            
+            console.log('🟢 Backend authentication successful');
+            
+            // 4. Also update AuthContext for compatibility
+            login(response.token, response.user);
+            
+            // 5. Navigate to app
+            navigate('/app');
+            
+        } catch (err: any) {
+            console.error('❌ Google sign-in error:', err);
+            setError(err.message || 'Failed to sign in with Google');
+        }
+    };
 
     return (
         <div className="bg-background-light dark:bg-background-dark font-display text-text-main-light dark:text-text-main-dark antialiased transition-colors duration-200 min-h-screen">
@@ -127,7 +156,11 @@ export const Login = () => {
 
                         <div className="rounded-2xl border border-white/50 bg-surface-light/80 p-8 shadow-xl backdrop-blur-xl dark:border-[#2b263b] dark:bg-surface-dark/80">
                             <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
-                                {error && <div className="text-sm text-red-500">{error}</div>}
+                                {(error || reduxError) && (
+                                    <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
+                                        {error || reduxError}
+                                    </div>
+                                )}
                                 
                                 <div className="grid grid-cols-1 gap-4">
                                     <div>
@@ -136,7 +169,17 @@ export const Login = () => {
                                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted-light dark:text-text-muted-dark">
                                                 <span className="material-symbols-outlined text-[20px]">mail</span>
                                             </div>
-                                            <input id="email" name="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@company.com" className="block w-full pl-10 pr-3 py-3 rounded-lg border-border-light dark:border-border-dark bg-white dark:bg-surface-dark text-text-main-light dark:text-text-main-dark placeholder:text-text-muted-light/60 dark:placeholder:text-text-muted-dark/50 focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm shadow-sm transition-shadow" required />
+                                            <input 
+                                                id="email" 
+                                                name="email" 
+                                                type="email" 
+                                                value={email} 
+                                                onChange={(e) => setEmail(e.target.value)} 
+                                                placeholder="name@company.com" 
+                                                className="block w-full pl-10 pr-3 py-3 rounded-lg border-border-light dark:border-border-dark bg-white dark:bg-surface-dark text-text-main-light dark:text-text-main-dark placeholder:text-text-muted-light/60 dark:placeholder:text-text-muted-dark/50 focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm shadow-sm transition-shadow" 
+                                                required 
+                                                disabled={reduxLoading}
+                                            />
                                         </div>
                                     </div>
                                     <div>
@@ -148,19 +191,38 @@ export const Login = () => {
                                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted-light dark:text-text-muted-dark">
                                                 <span className="material-symbols-outlined text-[20px]">lock</span>
                                             </div>
-                                            <input id="password" name="password" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="block w-full pl-10 pr-10 py-3 rounded-lg border-border-light dark:border-border-dark bg-white dark:bg-surface-dark text-text-main-light dark:text-text-main-dark placeholder:text-text-muted-light/60 dark:placeholder:text-text-muted-dark/50 focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm shadow-sm transition-shadow" required />
-                                            <button type="button" onClick={() => setShowPassword(s => !s)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-muted-light dark:text-text-muted-dark hover:text-text-main-light dark:hover:text-text-main-dark">
+                                            <input 
+                                                id="password" 
+                                                name="password" 
+                                                type={showPassword ? 'text' : 'password'} 
+                                                value={password} 
+                                                onChange={(e) => setPassword(e.target.value)} 
+                                                placeholder="••••••••" 
+                                                className="block w-full pl-10 pr-10 py-3 rounded-lg border-border-light dark:border-border-dark bg-white dark:bg-surface-dark text-text-main-light dark:text-text-main-dark placeholder:text-text-muted-light/60 dark:placeholder:text-text-muted-dark/50 focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm shadow-sm transition-shadow" 
+                                                required 
+                                                disabled={reduxLoading}
+                                            />
+                                            <button 
+                                                type="button" 
+                                                onClick={() => setShowPassword(s => !s)} 
+                                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-muted-light dark:text-text-muted-dark hover:text-text-main-light dark:hover:text-text-main-dark"
+                                                disabled={reduxLoading}
+                                            >
                                                 <span className="material-symbols-outlined text-[20px]">{showPassword ? 'visibility' : 'visibility_off'}</span>
                                             </button>
                                         </div>
                                     </div>
                                 </div>
 
-                                <button type="submit" className="group relative flex w-full justify-center rounded-lg bg-primary px-4 py-3 text-sm font-bold text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg dark:ring-offset-surface-dark">
+                                <button 
+                                    type="submit" 
+                                    className="group relative flex w-full justify-center rounded-lg bg-primary px-4 py-3 text-sm font-bold text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg dark:ring-offset-surface-dark disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled={reduxLoading}
+                                >
                                     <span className="absolute inset-y-0 left-0 flex items-center pl-3">
                                         <span className="material-symbols-outlined text-[20px] group-hover:translate-x-0.5 transition-transform duration-200">arrow_forward</span>
                                     </span>
-                                    Log In
+                                    {reduxLoading ? 'Logging in...' : 'Log In'}
                                 </button>
                             </form>
 
@@ -173,23 +235,20 @@ export const Login = () => {
                             <div className="flex w-full">
                                 <button 
                                     type="button" 
-                                    onClick={() => googleLogin()}
+                                    onClick={handleGoogleSignIn}
                                     disabled={reduxLoading}
                                     className="flex items-center justify-center gap-2 px-4 py-2.5 border border-border-light dark:border-border-dark rounded-lg bg-surface-light dark:bg-surface-dark text-text-main-light dark:text-text-main-dark hover:bg-background-light dark:hover:bg-background-dark/50 transition-colors w-full disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {reduxLoading ? (
                                         <span className="material-symbols-outlined animate-spin">hourglass_empty</span>
                                     ) : (
-                                        <svg aria-hidden="true" className="h-5 w-5" viewBox="0 0 24 24"><path d="M12.0003 20.45c4.6667 0 7.9167-3.25 7.9167-8.1 0-.6-.05-1.15-.15-1.7h-7.7667v3.25h4.4833c-.2 1.2-1.25 3.35-4.4833 3.35-2.7 0-4.9167-2.15-4.9167-4.8 0-2.65 2.2167-4.8 4.9167-4.8 1.5167 0 2.5333.65 3.1167 1.2l2.35-2.35c-1.5-1.4-3.4667-2.2-5.4667-2.2-4.5 0-8.15 3.65-8.15 8.15 0 4.5 3.65 8.15 8.15 8.15z" fill="currentColor"></path></svg>
+                                        <svg aria-hidden="true" className="h-5 w-5" viewBox="0 0 24 24">
+                                            <path d="M12.0003 20.45c4.6667 0 7.9167-3.25 7.9167-8.1 0-.6-.05-1.15-.15-1.7h-7.7667v3.25h4.4833c-.2 1.2-1.25 3.35-4.4833 3.35-2.7 0-4.9167-2.15-4.9167-4.8 0-2.65 2.2167-4.8 4.9167-4.8 1.5167 0 2.5333.65 3.1167 1.2l2.35-2.35c-1.5-1.4-3.4667-2.2-5.4667-2.2-4.5 0-8.15 3.65-8.15 8.15 0 4.5 3.65 8.15 8.15 8.15z" fill="currentColor"></path>
+                                        </svg>
                                     )}
                                     <span className="text-sm font-medium">{reduxLoading ? 'Signing in...' : 'Continue with Google'}</span>
                                 </button>
                             </div>
-                            {(error || reduxError) && (
-                                <div className="mt-4 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
-                                    {error || reduxError}
-                                </div>
-                            )}
                         </div>
 
                         <div className="text-center text-xs text-text-muted-light dark:text-text-muted-dark">

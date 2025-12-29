@@ -85,8 +85,8 @@ export const Landing: React.FC = () => {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="mx-auto max-w-4xl font-display text-4xl font-extrabold tracking-tight text-text-main-light dark:text-text-main-dark sm:text-5xl lg:text-6xl mb-6 leading-[1.15]"
             >
-              Unlock actionable insights<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent-teal">from your raw data</span>
+              Upload datasets & visualize<br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent-teal">with instant chart exports</span>
             </motion.h1>
 
             <motion.p
@@ -95,7 +95,7 @@ export const Landing: React.FC = () => {
               transition={{ duration: 0.8, delay: 0.3 }}
               className="mx-auto max-w-2xl text-lg text-text-muted-light dark:text-text-muted-dark mb-10 leading-relaxed"
             >
-              DataWorld transforms complex datasets into beautiful, interactive dashboards in seconds. Connect your sources, visualize trends, and share powerful reports with your team.
+              DataWorld lets you upload CSV datasets, create beautiful interactive charts, and export them instantly in PNG, PDF, CSV, or JSON formats. No complex setup required.
             </motion.p>
 
             <motion.div
@@ -179,62 +179,72 @@ export const Landing: React.FC = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      <div className="rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-gray-700/30 p-5 shadow-sm">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-text-muted-light dark:text-text-muted-dark">Total Users</p>
-                            <h3 className="text-2xl font-bold text-text-main-light dark:text-text-main-dark mt-1">24,592</h3>
+                      <div className="rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-gray-700/30 p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <h3 className="text-lg font-semibold text-text-main-light dark:text-text-main-dark truncate">Sales_Data.csv</h3>
+                            <div className="flex items-center gap-3 mt-1">
+                              <span className="text-sm text-text-muted-light dark:text-text-muted-dark"><span className="font-medium">1,250</span> rows</span>
+                              <span className="text-sm text-text-muted-light dark:text-text-muted-dark"><span className="font-medium">8</span> columns</span>
+                            </div>
                           </div>
-                          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 dark:bg-primary/20 text-primary">
-                            <span className="material-symbols-outlined text-[18px]">group</span>
-                          </span>
+                          <span className="material-symbols-outlined text-primary">table_view</span>
                         </div>
-                        <div className="mt-4 h-16 w-full">
-                          {/* Small sparkline svg retained from original */}
-                          <svg className="h-full w-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 40">
-                            <path d="M0 35 C20 35, 30 10, 50 20 S 80 5, 100 15" fill="none" stroke="#2563EB" strokeWidth="2"></path>
-                            <path d="M0 35 C20 35, 30 10, 50 20 S 80 5, 100 15 V 40 H 0 Z" fill="url(#grad1)" opacity="0.1"></path>
-                            <defs>
-                              <linearGradient id="grad1" x1="0%" x2="0%" y1="0%" y2="100%">
-                                <stop offset="0%" style={{ stopColor: '#2563EB', stopOpacity: 1 }} />
-                                <stop offset="100%" style={{ stopColor: '#2563EB', stopOpacity: 0 }} />
-                              </linearGradient>
-                            </defs>
-                          </svg>
+                        <div className="flex gap-2 mt-4">
+                          <button className="flex-1 flex items-center justify-center gap-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1.5 transition-colors">
+                            <span className="material-symbols-outlined text-sm">bar_chart</span>
+                            Visualize
+                          </button>
+                          <button className="flex-1 flex items-center justify-center gap-1 rounded bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1.5 transition-colors">
+                            <span className="material-symbols-outlined text-sm">download</span>
+                            Export
+                          </button>
                         </div>
                       </div>
 
-                      <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-slate-500">Revenue</p>
-                            <h3 className="text-2xl font-bold text-slate-900 mt-1">$84,300</h3>
+                      <div className="rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-gray-700/30 p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <h3 className="text-lg font-semibold text-text-main-light dark:text-text-main-dark truncate">Q3_Revenue.csv</h3>
+                            <div className="flex items-center gap-3 mt-1">
+                              <span className="text-sm text-text-muted-light dark:text-text-muted-dark"><span className="font-medium">3,420</span> rows</span>
+                              <span className="text-sm text-text-muted-light dark:text-text-muted-dark"><span className="font-medium">12</span> columns</span>
+                            </div>
                           </div>
-                          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-                            <span className="material-symbols-outlined text-[18px]">payments</span>
-                          </span>
+                          <span className="material-symbols-outlined text-primary">table_view</span>
                         </div>
-                        <div className="mt-4 flex items-end gap-1 h-16 justify-between px-1">
-                          <div className="w-full bg-emerald-100 rounded-t-sm h-[40%]"></div>
-                          <div className="w-full bg-emerald-200 rounded-t-sm h-[70%]"></div>
-                          <div className="w-full bg-emerald-400 rounded-t-sm h-[50%]"></div>
-                          <div className="w-full bg-emerald-500 rounded-t-sm h-[90%]"></div>
-                          <div className="w-full bg-emerald-300 rounded-t-sm h-[60%]"></div>
+                        <div className="flex gap-2 mt-4">
+                          <button className="flex-1 flex items-center justify-center gap-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1.5 transition-colors">
+                            <span className="material-symbols-outlined text-sm">bar_chart</span>
+                            Visualize
+                          </button>
+                          <button className="flex-1 flex items-center justify-center gap-1 rounded bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1.5 transition-colors">
+                            <span className="material-symbols-outlined text-sm">download</span>
+                            Export
+                          </button>
                         </div>
                       </div>
 
-                      <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-slate-500">Active Sessions</p>
-                            <h3 className="text-2xl font-bold text-slate-900 mt-1">1,204</h3>
+                      <div className="rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-gray-700/30 p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <h3 className="text-lg font-semibold text-text-main-light dark:text-text-main-dark truncate">User_Analytics.json</h3>
+                            <div className="flex items-center gap-3 mt-1">
+                              <span className="text-sm text-text-muted-light dark:text-text-muted-dark"><span className="font-medium">5,890</span> rows</span>
+                              <span className="text-sm text-text-muted-light dark:text-text-muted-dark"><span className="font-medium">15</span> columns</span>
+                            </div>
                           </div>
-                          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-50 text-purple-600">
-                            <span className="material-symbols-outlined text-[18px]">bolt</span>
-                          </span>
+                          <span className="material-symbols-outlined text-primary">table_view</span>
                         </div>
-                        <div className="mt-4 h-16 flex items-center justify-center">
-                          <div className="text-xs text-slate-400">Live data stream active...</div>
+                        <div className="flex gap-2 mt-4">
+                          <button className="flex-1 flex items-center justify-center gap-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1.5 transition-colors">
+                            <span className="material-symbols-outlined text-sm">bar_chart</span>
+                            Visualize
+                          </button>
+                          <button className="flex-1 flex items-center justify-center gap-1 rounded bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1.5 transition-colors">
+                            <span className="material-symbols-outlined text-sm">download</span>
+                            Export
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -285,43 +295,43 @@ export const Landing: React.FC = () => {
           <section className="bg-surface-light dark:bg-surface-dark py-24 sm:py-32 transition-colors duration-200" id="features">
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
               <div className="mx-auto max-w-2xl text-center">
-                <h2 className="text-base font-semibold leading-7 text-primary">Deploy faster</h2>
-                <p className="mt-2 text-3xl font-bold tracking-tight text-text-main-light dark:text-text-main-dark sm:text-4xl font-display">Everything you need to master your data</p>
-                <p className="mt-6 text-lg leading-8 text-text-muted-light dark:text-text-muted-dark">Stop wrestling with spreadsheets. DataWorld gives you the power of an enterprise data team in a simple, intuitive interface.</p>
+                <h2 className="text-base font-semibold leading-7 text-primary">Powerful features</h2>
+                <p className="mt-2 text-3xl font-bold tracking-tight text-text-main-light dark:text-text-main-dark sm:text-4xl font-display">Everything you need for data visualization</p>
+                <p className="mt-6 text-lg leading-8 text-text-muted-light dark:text-text-muted-dark">Upload your CSV files, create stunning charts instantly, and export in multiple formats with just one click.</p>
               </div>
             <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
               <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
                 <div className="flex flex-col">
                   <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-text-main-light dark:text-text-main-dark">
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-                      <span className="material-symbols-outlined text-white">query_stats</span>
+                      <span className="material-symbols-outlined text-white">upload_file</span>
                     </div>
-                    Advanced Analytics
+                    Easy Dataset Upload
                   </dt>
                   <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-text-muted-light dark:text-text-muted-dark">
-                    <p className="flex-auto">Run complex queries with a simple drag-and-drop interface. No SQL knowledge required to find the answers you need.</p>
+                    <p className="flex-auto">Upload CSV files instantly with drag-and-drop. View row and column counts, and access your datasets from anywhere.</p>
                   </dd>
                 </div>
                 <div className="flex flex-col">
                   <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-text-main-light dark:text-text-main-dark">
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-teal">
-                      <span className="material-symbols-outlined text-white">sync</span>
+                      <span className="material-symbols-outlined text-white">bar_chart</span>
                     </div>
-                    Real-time Sync
+                    Interactive Charts
                   </dt>
                   <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-text-muted-light dark:text-text-muted-dark">
-                    <p className="flex-auto">Connect to Google Sheets, Excel, or your database. Your dashboards update automatically as your data changes.</p>
+                    <p className="flex-auto">Create beautiful, interactive charts powered by Recharts. Visualize your data with multiple chart types and customizations.</p>
                   </dd>
                 </div>
                 <div className="flex flex-col">
                   <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-text-main-light dark:text-text-main-dark">
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-600">
-                      <span className="material-symbols-outlined text-white">lock_open</span>
+                      <span className="material-symbols-outlined text-white">download</span>
                     </div>
-                    Secure Sharing
+                    Multi-Format Export
                   </dt>
                   <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-text-muted-light dark:text-text-muted-dark">
-                    <p className="flex-auto">Share reports with a link or embed them in your own tools. Granular permissions keep your sensitive data safe.</p>
+                    <p className="flex-auto">Export charts instantly in PNG, PDF, CSV, or JSON formats. High-quality output with a single click.</p>
                   </dd>
                 </div>
               </dl>

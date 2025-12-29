@@ -23,34 +23,47 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
-    const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+    const [token, setToken] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (token) {
-            // Here you would typically validate the token with the backend
-            // For now, we'll just assume it's valid if we have the user stored or just persist token
-            // In a real app, I'd fetch /api/auth/me
+        // Safe localStorage access
+        try {
+            const storedToken = localStorage.getItem('token');
             const storedUser = localStorage.getItem('user');
-            if (storedUser) {
+            
+            if (storedToken && storedUser) {
+                setToken(storedToken);
                 setUser(JSON.parse(storedUser));
             }
+        } catch (error) {
+            console.error('Error loading auth from storage:', error);
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     }, []);
 
     const login = (newToken: string, newUser: User) => {
-        localStorage.setItem('token', newToken);
-        localStorage.setItem('user', JSON.stringify(newUser));
-        setToken(newToken);
-        setUser(newUser);
+        try {
+            localStorage.setItem('token', newToken);
+            localStorage.setItem('user', JSON.stringify(newUser));
+            setToken(newToken);
+            setUser(newUser);
+        } catch (error) {
+            console.error('Error saving auth to storage:', error);
+        }
     };
 
     const logout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        setToken(null);
-        setUser(null);
+        try {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+        } catch (error) {
+            console.error('Error clearing auth from storage:', error);
+        } finally {
+            setToken(null);
+            setUser(null);
+        }
     };
 
     return (

@@ -4,9 +4,6 @@ import {
   googleLoginStart,
   googleLoginSuccess,
   googleLoginFailure,
-  googleSignupStart,
-  googleSignupSuccess,
-  googleSignupFailure,
   logout,
   clearError,
   setUser,
@@ -19,28 +16,32 @@ export const useReduxAuth = () => {
     (state: RootState) => state.auth
   );
 
-  const handleGoogleLogin = async (googleToken: string) => {
+  /**
+   * Handle Google authentication with user data (NOT Firebase token)
+   * @param userData - User data from Firebase (email, displayName, photoURL, uid)
+   */
+  const handleGoogleAuth = async (userData: {
+    email: string;
+    displayName: string | null;
+    photoURL: string | null;
+    uid: string;
+  }) => {
     try {
       dispatch(googleLoginStart());
-      const response = await googleAuthService.loginWithGoogle(googleToken);
+      
+      console.log('📤 Sending Google user data to backend...');
+      
+      // Send user data to backend (NOT Firebase token)
+      const response = await googleAuthService.authenticateWithGoogle(userData);
+      
+      console.log('✅ Backend response received');
+      
       dispatch(googleLoginSuccess(response));
       return response;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Login failed';
+      const errorMessage = err instanceof Error ? err.message : 'Authentication failed';
+      console.error('❌ Redux auth error:', errorMessage);
       dispatch(googleLoginFailure(errorMessage));
-      throw err;
-    }
-  };
-
-  const handleGoogleSignup = async (googleToken: string) => {
-    try {
-      dispatch(googleSignupStart());
-      const response = await googleAuthService.signupWithGoogle(googleToken);
-      dispatch(googleSignupSuccess(response));
-      return response;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Signup failed';
-      dispatch(googleSignupFailure(errorMessage));
       throw err;
     }
   };
@@ -70,8 +71,7 @@ export const useReduxAuth = () => {
     isAuthenticated,
     loading,
     error,
-    handleGoogleLogin,
-    handleGoogleSignup,
+    handleGoogleAuth,
     handleLogout,
     resetError,
     restoreUserFromStorage,
