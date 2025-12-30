@@ -54,11 +54,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const logout = () => {
         try {
+            // Clear all authentication-related items from localStorage
             localStorage.removeItem('token');
             localStorage.removeItem('user');
+            localStorage.removeItem('persist:auth'); // Clear redux-persist state
+            
+            // Clear session storage if used
+            sessionStorage.clear();
         } catch (error) {
             console.error('Error clearing auth from storage:', error);
         } finally {
+            // Clear state
             setToken(null);
             setUser(null);
         }

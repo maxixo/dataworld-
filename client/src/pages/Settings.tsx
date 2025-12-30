@@ -52,8 +52,8 @@ export const Settings: React.FC = () => {
                                 </div>
                                 <button
                                     onClick={toggleTheme}
-                                    className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-                                    style={{ backgroundColor: theme === 'dark' ? '#8B5CF6' : '#D1D5DB' }}
+                                    className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                    style={{ backgroundColor: theme === 'dark' ? '#3B82F6' : '#D1D5DB' }}
                                 >
                                     <span
                                         className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -92,8 +92,8 @@ export const Settings: React.FC = () => {
                                 </div>
                                 <button
                                     onClick={() => setEmailNotifications(!emailNotifications)}
-                                    className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-                                    style={{ backgroundColor: emailNotifications ? '#8B5CF6' : '#D1D5DB' }}
+                                    className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                    style={{ backgroundColor: emailNotifications ? '#3B82F6' : '#D1D5DB' }}
                                 >
                                     <span
                                         className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -114,8 +114,8 @@ export const Settings: React.FC = () => {
                                 </div>
                                 <button
                                     onClick={() => setDatasetAlerts(!datasetAlerts)}
-                                    className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-                                    style={{ backgroundColor: datasetAlerts ? '#8B5CF6' : '#D1D5DB' }}
+                                    className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                    style={{ backgroundColor: datasetAlerts ? '#3B82F6' : '#D1D5DB' }}
                                 >
                                     <span
                                         className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -136,8 +136,8 @@ export const Settings: React.FC = () => {
                                 </div>
                                 <button
                                     onClick={() => setWeeklyReports(!weeklyReports)}
-                                    className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-                                    style={{ backgroundColor: weeklyReports ? '#8B5CF6' : '#D1D5DB' }}
+                                    className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                    style={{ backgroundColor: weeklyReports ? '#3B82F6' : '#D1D5DB' }}
                                 >
                                     <span
                                         className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -167,8 +167,8 @@ export const Settings: React.FC = () => {
                                 </div>
                                 <button
                                     onClick={() => setAutoSave(!autoSave)}
-                                    className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-                                    style={{ backgroundColor: autoSave ? '#8B5CF6' : '#D1D5DB' }}
+                                    className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                    style={{ backgroundColor: autoSave ? '#3B82F6' : '#D1D5DB' }}
                                 >
                                     <span
                                         className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -188,7 +188,7 @@ export const Settings: React.FC = () => {
                                 <select
                                     value={defaultView}
                                     onChange={(e) => setDefaultView(e.target.value)}
-                                    className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 >
                                     <option value="grid">Grid View</option>
                                     <option value="list">List View</option>
@@ -211,11 +211,11 @@ export const Settings: React.FC = () => {
                                     <span className="font-medium text-gray-900 dark:text-white">2.4 GB / 20 GB</span>
                                 </div>
                                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                    <div className="bg-purple-600 h-2 rounded-full" style={{ width: '12%' }}></div>
+                                    <div className="bg-blue-600 h-2 rounded-full" style={{ width: '12%' }}></div>
                                 </div>
                             </div>
                             
-                            <button className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium">
+                            <button className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium">
                                 Manage Storage
                             </button>
                         </div>
@@ -225,7 +225,7 @@ export const Settings: React.FC = () => {
                     <div className="flex justify-end">
                         <button
                             onClick={handleSaveSettings}
-                            className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+                            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                         >
                             Save Changes
                         </button>

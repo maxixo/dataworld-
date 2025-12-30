@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { WelcomeSection } from '../components/WelcomeSection';
 import { FileUpload } from '../components/FileUpload';
@@ -26,6 +27,7 @@ interface Dataset {
 
 export const Dashboard: React.FC = () => {
     const { user, logout } = useAuth();
+    const navigate = useNavigate();
     const [datasets, setDatasets] = useState<Dataset[]>([]);
     const [filteredDatasets, setFilteredDatasets] = useState<Dataset[]>([]);
     const [activeFilter, setActiveFilter] = useState<FilterType>('ALL');
@@ -121,12 +123,17 @@ export const Dashboard: React.FC = () => {
         alert('Upgrade feature coming soon!');
     };
 
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
             {/* Header */}
                 <Header
                     username={user?.username || 'User'}
-                    onLogout={logout}
+                    onLogout={handleLogout}
                 />
 
             {/* Main Content */}
@@ -153,7 +160,7 @@ export const Dashboard: React.FC = () => {
                             {/* Loading State */}
                             {loading && (
                                 <div className="flex justify-center items-center py-12">
-                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                                 </div>
                             )}
 

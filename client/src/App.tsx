@@ -15,12 +15,22 @@ import { Settings } from './pages/Settings';
 import { UserProfile } from './pages/UserProfile';
 
 
-// Protected Route Component
+// Protected Route Component - redirects to landing if not authenticated
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAuth();
 
   if (loading) return <div>Loading...</div>;
-  if (!isAuthenticated) return <Navigate to="/login" />;
+  if (!isAuthenticated) return <Navigate to="/" replace />;
+
+  return children;
+};
+
+// Public Route Component - redirects to app if already authenticated
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) return <div>Loading...</div>;
+  if (isAuthenticated) return <Navigate to="/app" replace />;
 
   return children;
 };
@@ -33,8 +43,8 @@ function App() {
             <Router>
               <AuthProvider>
                 <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
+            <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+            <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
             <Route path="/" element={<Landing />} />
             <Route
               path="/app"

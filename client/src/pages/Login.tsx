@@ -137,6 +137,15 @@ export const Login = () => {
 
                 <div className="flex w-full lg:w-1/2 flex-col justify-center items-center p-6 sm:p-12 overflow-y-auto">
                     <div className="w-full max-w-md space-y-8">
+                        {/* Back Button */}
+                        <button
+                            onClick={() => navigate('/')}
+                            className="group flex items-center gap-2 text-text-muted-light dark:text-text-muted-dark hover:text-primary dark:hover:text-primary transition-colors mb-4"
+                        >
+                            <span className="material-symbols-outlined text-[20px] group-hover:-translate-x-1 transition-transform duration-200">arrow_back</span>
+                            <span className="text-sm font-medium">Back</span>
+                        </button>
+
                         <div className="lg:hidden flex justify-center mb-6">
                             <div className="flex items-center gap-3">
                                 <div className="size-8 text-primary">

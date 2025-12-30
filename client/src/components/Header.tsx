@@ -32,7 +32,7 @@ export const Header: React.FC<HeaderProps> = ({ username, onLogout }) => {
                     {/* Left Section: Logo */}
                     <div className="flex items-center gap-6">
                         <Link to="/" className="flex items-center gap-2">
-                            <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
+                            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                                 <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M3 3L8 8L3 13M8 3L13 8L8 13M13 3L18 8L13 13M18 3L21 6L18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
                                 </svg>
@@ -92,7 +92,7 @@ export const Header: React.FC<HeaderProps> = ({ username, onLogout }) => {
                                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                                 className="flex items-center gap-2 hover:opacity-80 transition-opacity"
                             >
-                                <div className="w-9 h-9 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold">
+                                <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-semibold">
                                     {username.charAt(0).toUpperCase()}
                                 </div>
                             </button>

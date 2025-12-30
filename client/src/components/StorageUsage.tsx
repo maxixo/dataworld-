@@ -22,7 +22,7 @@ export const StorageUsage: React.FC<StorageUsageProps> = ({ used, total, onUpgra
             {/* Progress Bar */}
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-3">
                 <div
-                    className="h-2 rounded-full bg-gradient-to-r from-purple-600 to-purple-400"
+                    className="h-2 rounded-full bg-gradient-to-r from-blue-600 to-blue-400"
                     style={{ width: `${Math.min(percentage, 100)}%` }}
                 />
             </div>
@@ -33,7 +33,7 @@ export const StorageUsage: React.FC<StorageUsageProps> = ({ used, total, onUpgra
 
             <button
                 onClick={onUpgrade}
-                className="w-full text-center text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium hover:underline"
+                className="w-full text-center text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium hover:underline"
             >
                 Upgrade Plan
             </button>

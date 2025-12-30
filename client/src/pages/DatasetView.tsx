@@ -117,7 +117,7 @@ export const DatasetView: React.FC = () => {
                 <div className="text-center">
                     <p className="text-red-600 dark:text-red-400 mb-4">{error || 'Dataset not found'}</p>
                     <button
-                        onClick={() => navigate('/')}
+                        onClick={() => navigate('/app')}
                         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
                     >
                         Back to Dashboard
@@ -127,7 +127,21 @@ export const DatasetView: React.FC = () => {
         );
     }
 
-    const renderChart = (height: number = 450) => {
+    const getChartHeight = () => {
+        // Different heights for different chart types
+        switch (chartType) {
+            case 'pie':
+                return 700; // Increased from 500 to 700 for more space
+            case 'bar':
+            case 'line':
+            default:
+                return 400; // Bar and line charts can be more compact
+        }
+    };
+
+    const renderChart = (height?: number) => {
+        const chartHeight = height || getChartHeight();
+        
         if (!xAxis || !yAxis) {
             return (
                 <div className="text-center py-12 text-gray-500 dark:text-gray-400">
@@ -141,122 +155,229 @@ export const DatasetView: React.FC = () => {
             [yAxis]: parseFloat(row[yAxis]) || 0
         }));
 
-        const commonProps = {
-            margin: { top: 20, right: 30, left: 60, bottom: 60 }
-        };
-
         switch (chartType) {
             case 'bar':
                 return (
-                    <ResponsiveContainer width="100%" height={height}>
-                        <BarChart data={chartData} {...commonProps}>
+                    <ResponsiveContainer width="100%" height={chartHeight}>
+                        <BarChart 
+                            data={chartData}
+                            margin={{ top: 20, right: 30, left: 60, bottom: 80 }}
+                        >
                             <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
                             <XAxis
                                 dataKey={xAxis}
                                 stroke="#666"
-                                tick={{ fill: '#666', fontSize: 12 }}
+                                tick={{ fill: '#666', fontSize: 11 }}
                                 angle={-45}
                                 textAnchor="end"
                                 height={80}
+                                interval={0}
                             />
                             <YAxis
                                 stroke="#666"
-                                tick={{ fill: '#666', fontSize: 12 }}
+                                tick={{ fill: '#666', fontSize: 11 }}
                                 tickFormatter={(value) => Number(value).toLocaleString()}
                             />
                             <Tooltip
                                 contentStyle={{
-                                    backgroundColor: 'rgba(0, 0, 0, 0.85)',
-                                    border: 'none',
+                                    backgroundColor: '#ffffff',
+                                    border: '1px solid #e0e0e0',
                                     borderRadius: '8px',
-                                    color: '#fff'
+                                    color: '#333',
+                                    padding: '12px',
+                                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                                }}
+                                itemStyle={{ color: '#333' }}
+                                labelStyle={{ 
+                                    color: '#666',
+                                    fontWeight: 'bold',
+                                    marginBottom: '8px'
                                 }}
                                 formatter={(value: any) => [Number(value).toLocaleString(), yAxis]}
                                 labelFormatter={(label) => `${xAxis}: ${label}`}
                             />
-                            {customization.showLegend && <Legend />}
+                            {customization.showLegend && (
+                                <Legend 
+                                    wrapperStyle={{ paddingTop: '20px' }}
+                                    iconType="rect"
+                                />
+                            )}
                             <Bar
                                 dataKey={yAxis}
                                 fill={customization.colors[0]}
-                                radius={[6, 6, 0, 0]}
+                                radius={[4, 4, 0, 0]}
                                 animationDuration={customization.animate ? 1000 : 0}
-                                maxBarSize={50}
+                                maxBarSize={60}
                             />
                         </BarChart>
                     </ResponsiveContainer>
                 );
             case 'line':
                 return (
-                    <ResponsiveContainer width="100%" height={height}>
-                        <LineChart data={chartData} {...commonProps}>
+                    <ResponsiveContainer width="100%" height={chartHeight}>
+                        <LineChart 
+                            data={chartData}
+                            margin={{ top: 20, right: 30, left: 60, bottom: 80 }}
+                        >
                             <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
                             <XAxis
                                 dataKey={xAxis}
                                 stroke="#666"
-                                tick={{ fill: '#666', fontSize: 12 }}
+                                tick={{ fill: '#666', fontSize: 11 }}
                                 angle={-45}
                                 textAnchor="end"
                                 height={80}
+                                interval={0}
                             />
                             <YAxis
                                 stroke="#666"
-                                tick={{ fill: '#666', fontSize: 12 }}
+                                tick={{ fill: '#666', fontSize: 11 }}
                                 tickFormatter={(value) => Number(value).toLocaleString()}
                             />
                             <Tooltip
                                 contentStyle={{
-                                    backgroundColor: 'rgba(0, 0, 0, 0.85)',
-                                    border: 'none',
+                                    backgroundColor: '#ffffff',
+                                    border: '1px solid #e0e0e0',
                                     borderRadius: '8px',
-                                    color: '#fff'
+                                    color: '#333',
+                                    padding: '12px',
+                                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                                }}
+                                itemStyle={{ color: '#333' }}
+                                labelStyle={{ 
+                                    color: '#666',
+                                    fontWeight: 'bold',
+                                    marginBottom: '8px'
                                 }}
                                 formatter={(value: any) => [Number(value).toLocaleString(), yAxis]}
                                 labelFormatter={(label) => `${xAxis}: ${label}`}
                             />
-                            {customization.showLegend && <Legend />}
+                            {customization.showLegend && (
+                                <Legend 
+                                    wrapperStyle={{ paddingTop: '20px' }}
+                                    iconType="line"
+                                />
+                            )}
                             <Line
                                 type="monotone"
                                 dataKey={yAxis}
                                 stroke={customization.colors[0]}
-                                strokeWidth={3}
-                                dot={{ fill: customization.colors[0], strokeWidth: 2, r: 5 }}
-                                activeDot={{ r: 7, strokeWidth: 2 }}
+                                strokeWidth={2.5}
+                                dot={{ fill: customization.colors[0], strokeWidth: 2, r: 4 }}
+                                activeDot={{ r: 6, strokeWidth: 2 }}
                                 animationDuration={customization.animate ? 1000 : 0}
                             />
                         </LineChart>
                     </ResponsiveContainer>
                 );
             case 'pie':
-                // Transform data for pie chart to use consistent property names
+                // Transform data for pie chart
                 const pieChartData = chartData.map((item) => ({
-                    name: item[xAxis],
+                    name: String(item[xAxis]),
                     value: parseFloat(item[yAxis]) || 0
-                })).filter(item => item.value > 0); // Only include items with positive values
+                })).filter(item => item.value > 0);
+                
+                // Calculate heights for better layout
+                const totalHeight = chartHeight;
+                const pieHeight = 400; // Fixed height for the pie itself
+                const legendSpace = totalHeight - pieHeight - 40; // Space for legend below
                 
                 return (
-                    <ResponsiveContainer width="100%" height={height}>
-                        <PieChart>
-                            <Pie
-                                data={pieChartData}
-                                dataKey="value"
-                                nameKey="name"
-                                cx="50%"
-                                cy="50%"
-                                outerRadius={height * 0.3}
-                                label={({name, percent}) => `${name}: ${((percent || 0) * 100).toFixed(1)}%`}
-                                animationDuration={customization.animate ? 1000 : 0}
+                    <div className="w-full" style={{ height: totalHeight, display: 'flex', flexDirection: 'column' }}>
+                        {/* Pie Chart */}
+                        <div style={{ height: pieHeight, width: '100%' }}>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={pieChartData}
+                                        dataKey="value"
+                                        nameKey="name"
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={0}
+                                        outerRadius={160}
+                                        label={false} // Disable labels on the chart itself
+                                        labelLine={false}
+                                        animationDuration={customization.animate ? 1000 : 0}
+                                    >
+                                        {pieChartData.map((_, index) => (
+                                            <Cell 
+                                                key={`cell-${index}`} 
+                                                fill={customization.colors[index % customization.colors.length]} 
+                                            />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip
+                                        contentStyle={{
+                                            backgroundColor: '#ffffff',
+                                            border: '1px solid #e0e0e0',
+                                            borderRadius: '8px',
+                                            color: '#333',
+                                            padding: '12px',
+                                            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                                        }}
+                                        itemStyle={{ color: '#333' }}
+                                        labelStyle={{ 
+                                            color: '#666',
+                                            fontWeight: 'bold',
+                                            marginBottom: '8px'
+                                        }}
+                                        formatter={(value: any) => {
+                                            const total = pieChartData.reduce((sum, d) => sum + d.value, 0);
+                                            const percentage = ((value / total) * 100).toFixed(1);
+                                            return [Number(value).toLocaleString(), yAxis, `${percentage}%`];
+                                        }}
+                                        labelFormatter={(label) => `${xAxis}: ${label}`}
+                                    />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
+                        
+                        {/* Legend Below Chart */}
+                        {customization.showLegend && (
+                            <div 
+                                className="w-full px-4 overflow-y-auto" 
+                                style={{ 
+                                    height: legendSpace,
+                                    paddingTop: '20px'
+                                }}
                             >
-                                {pieChartData.map((_, index) => (
-                                    <Cell key={`cell-${index}`} fill={customization.colors[index % customization.colors.length]} />
-                                ))}
-                            </Pie>
-                            <Tooltip
-                                formatter={(value: any) => [Number(value).toLocaleString(), yAxis]}
-                                labelFormatter={(label) => `${xAxis}: ${label}`}
-                            />
-                            {customization.showLegend && <Legend />}
-                        </PieChart>
-                    </ResponsiveContainer>
+                                <div className="flex flex-wrap justify-center gap-2">
+                                    {pieChartData.map((item, index) => {
+                                        const total = pieChartData.reduce((sum, d) => sum + d.value, 0);
+                                        const percentage = ((item.value / total) * 100).toFixed(1);
+                                        
+                                        return (
+                                            <div 
+                                                key={`legend-${index}`}
+                                                className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg text-sm shadow-sm hover:shadow-md transition-shadow"
+                                                style={{
+                                                    flex: '0 1 auto',
+                                                    minWidth: '180px',
+                                                    maxWidth: '300px'
+                                                }}
+                                            >
+                                                <div 
+                                                    className="w-4 h-4 rounded-full flex-shrink-0"
+                                                    style={{ 
+                                                        backgroundColor: customization.colors[index % customization.colors.length] 
+                                                    }}
+                                                />
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="text-gray-700 dark:text-gray-300 truncate font-medium" title={String(item.name)}>
+                                                        {item.name}
+                                                    </div>
+                                                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                                                        {Number(item.value).toLocaleString()} ({percentage}%)
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 );
         }
     };
@@ -269,7 +390,7 @@ export const DatasetView: React.FC = () => {
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <button
-                                onClick={() => navigate('/')}
+                                onClick={() => navigate('/app')}
                                 className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                             >
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -288,7 +409,7 @@ export const DatasetView: React.FC = () => {
             </header>
 
             {/* Main Content */}
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <main className="max-w-7xl mx-auto gap-5 px-4 sm:px-6 lg:px-8 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Main Chart Area */}
                     <div className="lg:col-span-2 space-y-6">
@@ -372,9 +493,11 @@ export const DatasetView: React.FC = () => {
                         {/* Chart Display */}
                         <div
                             ref={chartRef}
-                            className="bg-white dark:bg-gray-800 rounded-lg shadow p-6"
+                            className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 transition-all duration-300"
                         >
-                            {renderChart(450)}
+                            <div className="w-full" style={{ minHeight: `${getChartHeight()}px` }}>
+                                {renderChart()}
+                            </div>
                         </div>
                     </div>
 
@@ -448,7 +571,9 @@ export const DatasetView: React.FC = () => {
 
                         {/* Modal Content */}
                         <div className="p-8 h-[calc(100%-73px)] overflow-auto">
-                            {renderChart(window.innerHeight - 250)}
+                            <div className="w-full h-full" style={{ minHeight: `${window.innerHeight - 300}px` }}>
+                                {renderChart(window.innerHeight - 300)}
+                            </div>
                         </div>
                     </div>
                 </div>

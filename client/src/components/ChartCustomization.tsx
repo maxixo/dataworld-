@@ -44,7 +44,7 @@ export const ChartCustomization: React.FC<ChartCustomizationProps> = ({ onCustom
                 className="w-full flex items-center justify-between text-left"
             >
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                    <svg className="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                     </svg>
                     Customize Chart
@@ -65,7 +65,7 @@ export const ChartCustomization: React.FC<ChartCustomizationProps> = ({ onCustom
                             type="text"
                             value={customization.title}
                             onChange={(e) => handleChange({ title: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500"
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                             placeholder="Enter chart title"
                         />
                     </div>
@@ -81,8 +81,8 @@ export const ChartCustomization: React.FC<ChartCustomizationProps> = ({ onCustom
                                     key={name}
                                     onClick={() => handleChange({ colors })}
                                     className={`p-2 rounded-lg border-2 transition-colors ${JSON.stringify(colors) === JSON.stringify(customization.colors)
-                                            ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                                            : 'border-gray-300 dark:border-gray-600 hover:border-purple-300'
+                                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                                            : 'border-gray-300 dark:border-gray-600 hover:border-blue-300'
                                         }`}
                                 >
                                     <div className="flex items-center gap-1 mb-1">
@@ -108,7 +108,7 @@ export const ChartCustomization: React.FC<ChartCustomizationProps> = ({ onCustom
                             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Show Legend</span>
                             <button
                                 onClick={() => handleChange({ showLegend: !customization.showLegend })}
-                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${customization.showLegend ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-600'
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${customization.showLegend ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
                                     }`}
                             >
                                 <span
@@ -122,7 +122,7 @@ export const ChartCustomization: React.FC<ChartCustomizationProps> = ({ onCustom
                             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Show Grid</span>
                             <button
                                 onClick={() => handleChange({ showGrid: !customization.showGrid })}
-                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${customization.showGrid ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-600'
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${customization.showGrid ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
                                     }`}
                             >
                                 <span
@@ -136,7 +136,7 @@ export const ChartCustomization: React.FC<ChartCustomizationProps> = ({ onCustom
                             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Animations</span>
                             <button
                                 onClick={() => handleChange({ animate: !customization.animate })}
-                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${customization.animate ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-600'
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${customization.animate ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
                                     }`}
                             >
                                 <span

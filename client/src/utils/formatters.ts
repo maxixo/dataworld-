@@ -77,10 +77,10 @@ export const getFileTypeColor = (fileType: 'csv' | 'json' | 'xlsx' | 'txt') => {
             chartColor: '#10B981'
         },
         txt: {
-            bg: 'bg-purple-100 dark:bg-purple-900/20',
-            icon: 'text-purple-600 dark:text-purple-400',
-            badge: 'bg-purple-50 dark:bg-purple-900/30',
-            chartColor: '#8B5CF6'
+            bg: 'bg-blue-100 dark:bg-blue-900/20',
+            icon: 'text-blue-600 dark:text-blue-400',
+            badge: 'bg-blue-50 dark:bg-blue-900/30',
+            chartColor: '#3B82F6'
         }
     };
 

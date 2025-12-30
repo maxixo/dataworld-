@@ -133,7 +133,7 @@ export const ChartExport: React.FC<ChartExportProps> = ({ chartRef, data, fileNa
             <button
                 onClick={exportAsJSON}
                 disabled={!data || data.length === 0}
-                className="flex items-center gap-2 px-3 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white text-sm rounded-lg transition-colors"
+                className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white text-sm rounded-lg transition-colors"
                 title="Export data as JSON file"
             >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
