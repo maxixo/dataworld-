@@ -13,6 +13,9 @@ import { Landing } from './pages/Landing';
 import { DatasetView } from './pages/DatasetView';
 import { Settings } from './pages/Settings';
 import { UserProfile } from './pages/UserProfile';
+import { Files } from './pages/Files';
+import { Drafts } from './pages/Drafts';
+import { DraftEditor } from './pages/DraftEditor';
 
 
 // Protected Route Component - redirects to landing if not authenticated
@@ -75,6 +78,38 @@ function App() {
               element={
                 <PrivateRoute>
                   <UserProfile />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/files"
+              element={
+                <PrivateRoute>
+                  <Files />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/drafts"
+              element={
+                <PrivateRoute>
+                  <Drafts />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/draft/new"
+              element={
+                <PrivateRoute>
+                  <DraftEditor />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/draft/:id"
+              element={
+                <PrivateRoute>
+                  <DraftEditor />
                 </PrivateRoute>
               }
             />

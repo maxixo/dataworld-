@@ -7,6 +7,7 @@ import { promises as dnsPromises } from 'dns';
 
 import authRoutes from './routes/auth';
 import datasetRoutes from './routes/datasets';
+import draftRoutes from './routes/drafts';
 import { errorHandler } from './middleware/error';
 
 dotenv.config();
@@ -39,6 +40,7 @@ app.use((req, res, next) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/datasets', datasetRoutes);
+app.use('/api/drafts', draftRoutes);
 
 app.get('/', (req, res) => {
     res.send('DataWorld API is running');
