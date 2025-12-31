@@ -124,7 +124,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
                         encryptedBlobBase64: encryptedBase64,
                         salt,
                         iv,
-                        isLocked: true,
+                        isEncrypted: true,
                         label: baseName,
                         encryptedFileName: encryptedNameHex,
                         encryptedFileNameSalt: fnameSalt,

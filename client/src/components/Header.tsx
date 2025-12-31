@@ -14,10 +14,9 @@ export const Header: React.FC<HeaderProps> = ({ username, onLogout }) => {
     const [userMenuOpen, setUserMenuOpen] = useState(false);
 
     const navItems = [
-        { name: 'Dashboard', path: '/' },
-        { name: 'Datasets', path: '/' },
-        { name: 'Reports', path: '#' },
-        { name: 'Settings', path: '#' }
+        { name: 'Dashboard', path: '/app' },
+        { name: 'Datasets', path: '/files' },
+        { name: 'Settings', path: '/settings' }
     ];
 
     const isActive = (path: string) => {

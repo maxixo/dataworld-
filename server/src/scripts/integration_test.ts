@@ -74,7 +74,7 @@ async function run() {
           encryptedBlobBase64: encryptedBase64,
           salt: enc.saltHex,
           iv: enc.ivHex,
-          isLocked: true,
+          isEncrypted: true,
           label: 'My Secret File',
           encryptedFileName: encryptedFileNameHex,
           encryptedFileNameSalt: fnameEnc.saltHex,

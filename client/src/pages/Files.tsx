@@ -15,7 +15,7 @@ interface Dataset {
     fileSize?: number;
     createdAt: string;
     updatedAt?: string;
-    isLocked?: boolean;
+    isEncrypted?: boolean;
     label?: string | null;
 }
 
@@ -147,29 +147,29 @@ export const Files: React.FC = () => {
                             <button
                                 onClick={() => setActiveTab('locked')}
                                 className={`px-4 py-2 rounded-lg ${activeTab === 'locked' ? 'bg-blue-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'}`}>
-                                Locked Files
+                                Encrypted Files
                             </button>
                         </div>
 
                         {/* Section Title */}
                         <div className="mb-4">
                             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                                {activeTab === 'all' ? 'My Files' : 'Locked Files'}
+                                {activeTab === 'all' ? 'My Files' : 'Encrypted Files'}
                             </h2>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             {datasets
-                                .filter(ds => activeTab === 'all' ? true : !!ds.isLocked)
+                                .filter(ds => activeTab === 'all' ? true : !!ds.isEncrypted)
                                 .map((dataset) => (
                                     <DatasetCard
                                         key={dataset._id}
                                         id={dataset._id}
-                                        name={dataset.isLocked && dataset.label ? dataset.label : dataset.name}
+                                        name={dataset.isEncrypted && dataset.label ? dataset.label : dataset.name}
                                         updatedAt={dataset.updatedAt || dataset.createdAt}
                                         fileSize={dataset.fileSize}
-                                        data={dataset.isLocked ? [] : dataset.data}
-                                        isLocked={dataset.isLocked}
+                                        data={dataset.isEncrypted ? [] : dataset.data}
+                                        isEncrypted={dataset.isEncrypted}
                                         label={dataset.label}
                                         onDelete={() => handleDeleteDataset(dataset._id)}
                                     />

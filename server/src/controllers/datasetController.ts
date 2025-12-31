@@ -14,7 +14,7 @@ export const uploadDataset = async (req: Request, res: Response) => {
             encryptedBlobBase64,
             salt,
             iv,
-            isLocked,
+            isEncrypted,
             label,
             encryptedFileName,
             encryptedFileNameSalt,
@@ -38,7 +38,7 @@ export const uploadDataset = async (req: Request, res: Response) => {
             newDataset.encryptedBlob = buffer;
             newDataset.salt = salt || null;
             newDataset.iv = iv || null;
-            newDataset.isLocked = !!isLocked;
+            newDataset.isEncrypted = !!isEncrypted;
             newDataset.label = label || null;
             newDataset.encryptedFileName = encryptedFileName || null;
             newDataset.encryptedFileNameSalt = encryptedFileNameSalt || null;
@@ -67,7 +67,7 @@ export const getDatasets = async (req: Request, res: Response) => {
 
         // Return a lightweight list (exclude encryptedBlob and data)
         const datasets = await Dataset.find({ user: userId })
-            .select('name fileName fileSize isLocked label createdAt updatedAt');
+            .select('name fileName fileSize isEncrypted label createdAt updatedAt');
         res.json(datasets);
     } catch (err) {
         console.error(err);
@@ -125,12 +125,12 @@ export const getDatasetBlob = async (req: Request, res: Response) => {
         // @ts-ignore
         const userId = req.user.userId;
 
-        const dataset: any = await Dataset.findById(id).select('user isLocked label encryptedBlob salt iv encryptedFileName encryptedFileNameSalt encryptedFileNameIv mimeType');
+        const dataset: any = await Dataset.findById(id).select('user isEncrypted label encryptedBlob salt iv encryptedFileName encryptedFileNameSalt encryptedFileNameIv mimeType');
         if (!dataset) return res.status(404).json({ message: 'Dataset not found' });
 
         if (dataset.user.toString() !== userId) return res.status(403).json({ message: 'Unauthorized' });
 
-        if (!dataset.isLocked || !dataset.encryptedBlob) return res.status(400).json({ message: 'No encrypted blob available' });
+        if (!dataset.isEncrypted || !dataset.encryptedBlob) return res.status(400).json({ message: 'No encrypted blob available' });
 
         // If client requests raw binary (faster for large files), stream the buffer
         const raw = req.query.raw === '1' || req.query.raw === 'true';

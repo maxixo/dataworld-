@@ -10,7 +10,7 @@ interface DraftData {
     _id?: string;
     title: string;
     content: string;
-    isLocked?: boolean;
+    isEncrypted?: boolean;
     label?: string;
     passwordHash?: string | null;
     passwordSalt?: string | null;
@@ -27,7 +27,6 @@ export const DraftEditor: React.FC = () => {
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [isLocked, setIsLocked] = useState(false);
     const [isEncrypted, setIsEncrypted] = useState(false);
     const [locking, setLocking] = useState(false);
     const [showLockModal, setShowLockModal] = useState(false);
@@ -80,9 +79,9 @@ export const DraftEditor: React.FC = () => {
             const draft = response.data;
             console.log('Draft loaded:', draft);
             setServerDraft(draft);
-            setIsLocked(draft.isLocked || false);
+            setIsEncrypted(draft.isEncrypted || false);
 
-            if (draft.isLocked) {
+            if (draft.isEncrypted) {
                 // Store encrypted data
                 setEncryptedTitle(draft.title);
                 setEncryptedContent(draft.content);
@@ -205,7 +204,7 @@ export const DraftEditor: React.FC = () => {
                 const draftData = {
                     title: encrypted.encryptedTitle,
                     content: encrypted.encryptedContent,
-                    isLocked: true,
+                    isEncrypted: true,
                     passwordHash: encrypted.passwordHash,
                     passwordSalt: encrypted.passwordSalt,
                     iv: encrypted.iv
@@ -283,7 +282,7 @@ export const DraftEditor: React.FC = () => {
             const draftData = {
                 title: encrypted.encryptedTitle,
                 content: encrypted.encryptedContent,
-                isLocked: true,
+                isEncrypted: true,
                 label: label,
                 passwordHash: encrypted.passwordHash,
                 passwordSalt: encrypted.passwordSalt,
@@ -294,7 +293,6 @@ export const DraftEditor: React.FC = () => {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
-            setIsLocked(true);
             setIsEncrypted(true);
             setShowLockModal(false);
             setShowSuccessModal(true);
@@ -354,7 +352,7 @@ export const DraftEditor: React.FC = () => {
                                 Saved!
                             </span>
                         )}
-                        {!isLocked && (
+                        {!isEncrypted && (
                             <button
                                 onClick={() => setShowLockModal(true)}
                                 className="flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium bg-amber-600 hover:bg-amber-700 text-white transition-colors"
@@ -365,7 +363,7 @@ export const DraftEditor: React.FC = () => {
                                 Lock & Encrypt
                             </button>
                         )}
-                        {isLocked && (
+                        {isEncrypted && (
                             <button
                                 disabled={true}
                                 className="flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium bg-green-600 text-white cursor-default"
@@ -455,7 +453,7 @@ export const DraftEditor: React.FC = () => {
                         <li>• Click the Save button to save your draft</li>
                         <li>• You can edit your draft anytime from the Drafts page</li>
                         <li>• Use the Back button to return to the Drafts list</li>
-                        {isLocked && <li>• This note is encrypted and can only be accessed with the password</li>}
+                        {isEncrypted && <li>• This note is encrypted and can only be accessed with the password</li>}
                     </ul>
                 </div>
             </main>

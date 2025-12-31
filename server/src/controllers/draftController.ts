@@ -46,12 +46,12 @@ export const getDrafts = async (req: AuthRequest, res: Response) => {
         if (type === 'trash') {
             query.isDeleted = true;
         } else if (type === 'locked-notes') {
-            query.isLocked = true;
+            query.isEncrypted = true;
             query.isDeleted = false;
         } else {
             // Default: drafts
             query.isDeleted = false;
-            query.isLocked = false;
+            query.isEncrypted = false;
         }
 
         const drafts = await Draft.find(query).sort({ updatedAt: -1 });
@@ -66,7 +66,7 @@ export const getAllLockedNotes = async (req: AuthRequest, res: Response) => {
     try {
         const drafts = await Draft.find({
             user: req.user?.userId,
-            isLocked: true,
+            isEncrypted: true,
             isDeleted: false
         }).sort({ updatedAt: -1 });
         
@@ -97,7 +97,7 @@ export const getDraft = async (req: AuthRequest, res: Response) => {
 // Update a draft
 export const updateDraft = async (req: AuthRequest, res: Response) => {
     try {
-        const { title, content, isLocked, passwordHash, passwordSalt, iv, label } = req.body;
+        const { title, content, isEncrypted, passwordHash, passwordSalt, iv, label } = req.body;
         
         // Validate word count (max 1000 words)
         if (content) {
@@ -116,7 +116,7 @@ export const updateDraft = async (req: AuthRequest, res: Response) => {
         // Only update fields that are provided
         if (title !== undefined) updateData.title = title;
         if (content !== undefined) updateData.content = content;
-        if (isLocked !== undefined) updateData.isLocked = isLocked;
+        if (isEncrypted !== undefined) updateData.isEncrypted = isEncrypted;
         if (passwordHash !== undefined) updateData.passwordHash = passwordHash;
         if (passwordSalt !== undefined) updateData.passwordSalt = passwordSalt;
         if (iv !== undefined) updateData.iv = iv;

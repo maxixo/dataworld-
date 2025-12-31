@@ -11,7 +11,7 @@ interface Draft {
     _id: string;
     title: string;
     content: string;
-    isLocked: boolean;
+    isEncrypted: boolean;
     label?: string;
     isDeleted: boolean;
     createdAt: string;
@@ -111,7 +111,7 @@ export const Drafts: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
         )},
-        { id: 'locked-notes' as TabType, label: 'Locked Notes', icon: (
+        { id: 'locked-notes' as TabType, label: 'Encrypted Notes', icon: (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
@@ -143,12 +143,12 @@ export const Drafts: React.FC = () => {
         if (drafts.length === 0) {
             const messages = {
                 'drafts': 'No drafts yet',
-                'locked-notes': 'No locked notes',
+                'locked-notes': 'No encrypted notes',
                 'trash': 'Trash is empty'
             };
             const subMessages = {
                 'drafts': 'Your saved drafts will appear here',
-                'locked-notes': 'Password-protected notes will appear here',
+                'locked-notes': 'Encrypted notes will appear here',
                 'trash': 'Deleted items will appear here'
             };
             
@@ -188,14 +188,14 @@ export const Drafts: React.FC = () => {
                         <div className="flex justify-between items-start">
                             <div className="flex-1 min-w-0">
                                 <h3 className="font-medium text-gray-900 dark:text-white truncate">
-                                    {draft.isLocked && draft.label ? draft.label : draft.title}
+                                    {draft.isEncrypted && draft.label ? draft.label : draft.title}
                                 </h3>
-                                {draft.isLocked && draft.label && (
+                                {draft.isEncrypted && draft.label && (
                                     <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
                                         🔒 Encrypted Note
                                     </p>
                                 )}
-                                {!draft.isLocked && (
+                                {!draft.isEncrypted && (
                                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
                                         {draft.content.substring(0, 100)}{draft.content.length > 100 && '...'}
                                     </p>
@@ -256,7 +256,7 @@ export const Drafts: React.FC = () => {
                         Drafts
                     </h1>
                     <p className="text-gray-600 dark:text-gray-400">
-                        Manage your drafts, locked notes, and deleted items
+                        Manage your drafts, encrypted notes, and deleted items
                     </p>
                 </div>
 

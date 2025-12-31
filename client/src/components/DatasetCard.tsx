@@ -11,7 +11,7 @@ interface DatasetCardProps {
     fileSize?: number;
     data?: any[];
     onDelete?: () => void;
-    isLocked?: boolean;
+    isEncrypted?: boolean;
     label?: string | null;
 }
 
@@ -22,7 +22,7 @@ export const DatasetCard: React.FC<DatasetCardProps> = ({
     fileSize = 0,
     data = [],
     onDelete,
-    isLocked,
+    isEncrypted,
     label
 }) => {
     const navigate = useNavigate();
@@ -89,7 +89,7 @@ export const DatasetCard: React.FC<DatasetCardProps> = ({
         <>
         <div
             onClick={handleCardClick}
-            className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-lg transition-all duration-200 p-5 cursor-pointer relative border border-gray-100 dark:border-gray-700 ${isLocked ? 'opacity-70' : ''}`}
+            className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-lg transition-all duration-200 p-5 cursor-pointer relative border border-gray-100 dark:border-gray-700 ${isEncrypted ? 'opacity-70' : ''}`}
         >
             {/* Header */}
             <div className="flex items-start justify-between mb-4">
@@ -127,7 +127,7 @@ export const DatasetCard: React.FC<DatasetCardProps> = ({
                             >
                                 Delete
                             </button>
-                            {isLocked && (
+                            {isEncrypted && (
                                 <button
                                     onClick={(e) => { e.stopPropagation(); setShowLockedViewer(true); setMenuOpen(false); }}
                                     className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -145,14 +145,14 @@ export const DatasetCard: React.FC<DatasetCardProps> = ({
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
                     {name.replace(/\.(csv|json|xlsx|txt)$/i, '')}
                 </h3>
-                {isLocked && (
+                {isEncrypted && (
                     <span className="ml-3 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300">
                         <svg className="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path d="M12 17a1 1 0 001-1v-1a1 1 0 10-2 0v1a1 1 0 001 1z" />
                             <rect x="5" y="8" width="14" height="10" rx="2" />
                             <path d="M8 8V7a4 4 0 018 0v1" />
                         </svg>
-                        Locked
+                        Encrypted
                     </span>
                 )}
             </div>

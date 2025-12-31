@@ -10,7 +10,7 @@ const DatasetSchema = new mongoose.Schema({
     columns: { type: Array },
     rowCount: { type: Number },
     // Encrypted file metadata (for encrypted uploads)
-    isLocked: { type: Boolean, default: false },
+    isEncrypted: { type: Boolean, default: false },
     label: { type: String, default: null },
     salt: { type: String, default: null },
     iv: { type: String, default: null },
