@@ -160,8 +160,7 @@ export const Files: React.FC = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             {datasets
-                                .filter(ds => activeTab === 'all' ? true : !!ds.isEncrypted)
-                                .map((dataset) => (
+                        .filter(ds => activeTab === 'all' ? !ds.isEncrypted : !!ds.isEncrypted)                                .map((dataset) => (
                                     <DatasetCard
                                         key={dataset._id}
                                         id={dataset._id}

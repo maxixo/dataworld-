@@ -19,7 +19,7 @@ function fromHex(hexStr: string): ArrayBuffer {
   if (!hexStr) return new ArrayBuffer(0);
   const pairs = hexStr.match(/.{1,2}/g) || [];
   const bytes = new Uint8Array(pairs.map(s => parseInt(s, 16)));
-  return bytes.buffer;
+  return bytes.buffer as ArrayBuffer;
 }
 
 export async function generateRandomBytes(len = 16): Promise<Uint8Array> {
@@ -42,7 +42,7 @@ export async function deriveKey(password: string, saltHex: string): Promise<Cryp
   const key = await crypto.subtle.deriveKey(
     {
       name: 'PBKDF2',
-      salt: salt.buffer as ArrayBuffer,
+      salt,
       iterations: PBKDF2_ITER,
       hash: 'SHA-256'
     },
@@ -57,12 +57,12 @@ export async function deriveKey(password: string, saltHex: string): Promise<Cryp
 
 export async function encryptBlob(blob: Blob, password: string) {
   const salt = await generateRandomBytes(16);
-  const iv = await generateRandomBytes(12);
+  const iv:any = await generateRandomBytes(12);
   const key = await deriveKey(password, hex(salt));
 
   const data = await blob.arrayBuffer();
   const encrypted = await crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv: iv.buffer as ArrayBuffer }, 
+    { name: 'AES-GCM', iv }, 
     key, 
     data
   );
@@ -86,7 +86,7 @@ export async function decryptToBlob(
   const ivBuf = fromHex(ivHex);
   const ivBytes = new Uint8Array(ivBuf);
   const decrypted = await crypto.subtle.decrypt(
-    { name: 'AES-GCM', iv: ivBytes.buffer as ArrayBuffer }, 
+    { name: 'AES-GCM', iv: ivBytes }, 
     key, 
     encryptedBuffer
   );

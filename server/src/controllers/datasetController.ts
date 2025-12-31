@@ -1,7 +1,15 @@
 import { Request, Response } from 'express';
-import { Dataset } from '../models/Dataset';
+import { Types } from 'mongoose';
+import { Dataset, IDataset } from '../models/Dataset';
+import { AuthRequest } from '../middleware/auth';
+import { handleError } from '../utils/errorHandler';
 
-export const uploadDataset = async (req: Request, res: Response) => {
+// Define proper document type
+interface DatasetDocument extends IDataset {
+  _id: Types.ObjectId;
+}
+
+export const uploadDataset = async (req: AuthRequest, res: Response) => {
     try {
         const {
             name,
@@ -21,10 +29,9 @@ export const uploadDataset = async (req: Request, res: Response) => {
             encryptedFileNameIv,
             mimeType
         } = req.body;
-        // @ts-ignore
-        const userId = req.user.userId;
+        const userId = req.user?.userId;
 
-        const newDataset: any = {
+        const newDataset: Partial<IDataset> & { user?: string } = {
             user: userId,
             name,
             fileName: fileName || name,
@@ -33,17 +40,25 @@ export const uploadDataset = async (req: Request, res: Response) => {
         };
 
         if (encryptedBlobBase64) {
+            console.log('🔥 [SERVER] Received encrypted upload - salt:', salt, 'iv:', iv, 'encryptedFilename:', encryptedFileName, 'nameS:', encryptedFileNameSalt, 'nameIv:', encryptedFileNameIv);
             // Store encrypted blob and metadata
             const buffer = Buffer.from(encryptedBlobBase64, 'base64');
             newDataset.encryptedBlob = buffer;
-            newDataset.salt = salt || null;
-            newDataset.iv = iv || null;
-            newDataset.isEncrypted = !!isEncrypted;
-            newDataset.label = label || null;
-            newDataset.encryptedFileName = encryptedFileName || null;
-            newDataset.encryptedFileNameSalt = encryptedFileNameSalt || null;
-            newDataset.encryptedFileNameIv = encryptedFileNameIv || null;
-            newDataset.mimeType = mimeType || null;
+            newDataset.salt = salt;
+            newDataset.iv = iv;
+            newDataset.isEncrypted = true;
+            newDataset.label = label;
+            newDataset.encryptedFileName = encryptedFileName;
+            newDataset.encryptedFileNameSalt = encryptedFileNameSalt;
+            newDataset.encryptedFileNameIv = encryptedFileNameIv;
+            newDataset.mimeType = mimeType;
+            console.log('✓ [SERVER] About to store - newDataset fields:', { 
+                salt: newDataset.salt, 
+                iv: newDataset.iv, 
+                encryptedFileName: newDataset.encryptedFileName,
+                encryptedFileNameSalt: newDataset.encryptedFileNameSalt,
+                encryptedFileNameIv: newDataset.encryptedFileNameIv
+            });
         } else {
             // Store parsed data
             newDataset.data = data;
@@ -51,103 +66,132 @@ export const uploadDataset = async (req: Request, res: Response) => {
             newDataset.rowCount = rowCount;
         }
 
-        const savedDataset = await Dataset.create(newDataset);
+        const savedDataset = await Dataset.create(newDataset) as DatasetDocument;
+        
+        if (encryptedBlobBase64) {
+            console.log('✓ [SERVER] Saved to DB - datasetId:', savedDataset._id);
+            console.log('  - salt:', savedDataset.salt);
+            console.log('  - iv:', savedDataset.iv);
+            console.log('  - encryptedFileName:', savedDataset.encryptedFileName);
+            console.log('  - encryptedFileNameSalt:', savedDataset.encryptedFileNameSalt);
+            console.log('  - encryptedFileNameIv:', savedDataset.encryptedFileNameIv);
+            console.log('  - isEncrypted:', savedDataset.isEncrypted);
+        }
 
         res.json(savedDataset);
     } catch (err) {
-        console.error(err);
-        res.status(500).send('Server Error');
+        handleError(res, err, 'uploadDataset');
     }
 };
 
-export const getDatasets = async (req: Request, res: Response) => {
+// Consolidated endpoint to get datasets with optional details
+export const getDatasets = async (req: AuthRequest, res: Response) => {
     try {
-        // @ts-ignore
-        const userId = req.user.userId;
-
-        // Return a lightweight list (exclude encryptedBlob and data)
-        const datasets = await Dataset.find({ user: userId })
-            .select('name fileName fileSize isEncrypted label createdAt updatedAt');
+        const userId = req.user?.userId;
+        const includeDetails = req.query.details === 'true';
+        
+        // Select fields based on request
+        const select = includeDetails 
+            ? 'name fileName fileSize rowCount columns createdAt isEncrypted label'
+            : 'name fileName fileSize isEncrypted label createdAt';
+        
+        let query = Dataset.find({ user: userId })
+            .select(select)
+            .sort({ createdAt: -1 });
+        
+        // Limit results for detailed queries
+        if (includeDetails) {
+            query = query.limit(50);
+        }
+        
+        const datasets = includeDetails
+            ? await query.lean<DatasetDocument[]>()
+            : await query.lean<Pick<IDataset, 'name' | 'fileName' | 'fileSize' | 'isEncrypted' | 'label' | 'createdAt'>[]>();
+        
         res.json(datasets);
     } catch (err) {
-        console.error(err);
-        res.status(500).send('Server Error');
+        handleError(res, err, 'getDatasets');
     }
 };
 
-// Get user's upload history
-export const getUploadHistory = async (req: Request, res: Response) => {
-    try {
-        // @ts-ignore
-        const userId = req.user.userId;
-
-        const history = await Dataset.find({ user: userId })
-            .select('name fileName fileSize rowCount columns createdAt')
-            .sort({ createdAt: -1 })
-            .limit(50); // Limit to last 50 uploads
-
-        res.json(history);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server Error');
-    }
-};
-
-export const getDatasetById = async (req: Request, res: Response) => {
+export const getDatasetById = async (req: AuthRequest, res: Response) => {
     try {
         const { id } = req.params;
 
-        // @ts-ignore
-        const userId = req.user.userId;
+        const userId = req.user?.userId;
 
-        const dataset = await Dataset.findById(id);
+        const dataset = await Dataset.findById(id).lean<DatasetDocument | null>();
         if (!dataset) {
             return res.status(404).json({ message: 'Dataset not found' });
         }
 
         // Check ownership - users can only access their own datasets
-        if (dataset.user.toString() !== userId) {
+        if (dataset && dataset.user.toString() !== userId) {
             return res.status(403).json({ message: 'Unauthorized access to dataset' });
         }
 
         res.json(dataset);
     } catch (err) {
-        console.error(err);
-        res.status(500).send('Server Error');
+        handleError(res, err, 'getDatasetById');
     }
 };
 
 // Return encrypted blob and metadata (base64) for client-side decryption
-export const getDatasetBlob = async (req: Request, res: Response) => {
+export const getDatasetBlob = async (req: AuthRequest, res: Response) => {
     try {
         const { id } = req.params;
 
-        // @ts-ignore
-        const userId = req.user.userId;
+        const userId = req.user?.userId;
 
-        const dataset: any = await Dataset.findById(id).select('user isEncrypted label encryptedBlob salt iv encryptedFileName encryptedFileNameSalt encryptedFileNameIv mimeType');
-        if (!dataset) return res.status(404).json({ message: 'Dataset not found' });
+        const dataset = await Dataset.findById(id).lean<DatasetDocument | null>();
+        
+        if (!dataset) {
+            console.log('❌ [SERVER] Dataset not found:', id);
+            return res.status(404).json({ message: 'Dataset not found' });
+        }
 
-        if (dataset.user.toString() !== userId) return res.status(403).json({ message: 'Unauthorized' });
+        console.log('📤 [SERVER] Retrieved dataset from DB');
+        console.log('  - _id:', dataset._id);
+        console.log('  - isEncrypted:', dataset.isEncrypted);
+        console.log('  - salt:', dataset.salt);
+        console.log('  - iv:', dataset.iv);
+        console.log('  - encryptedFileName:', dataset.encryptedFileName);
+        console.log('  - encryptedFileNameSalt:', dataset.encryptedFileNameSalt);
+        console.log('  - encryptedFileNameIv:', dataset.encryptedFileNameIv);
+        console.log('  - mimeType:', dataset.mimeType);
+        console.log('  - encryptedBlob exists:', !!dataset.encryptedBlob);
+        console.log('  - encryptedBlob size:', dataset.encryptedBlob?.length);
 
-        if (!dataset.isEncrypted || !dataset.encryptedBlob) return res.status(400).json({ message: 'No encrypted blob available' });
+        if (dataset.user.toString() !== userId) {
+            return res.status(403).json({ message: 'Unauthorized' });
+        }
 
-        // If client requests raw binary (faster for large files), stream the buffer
+        if (!dataset.isEncrypted || !dataset.encryptedBlob) {
+            return res.status(400).json({ message: 'No encrypted blob available' });
+        }
+
+        // If client requests raw binary, return metadata in JSON body instead of headers
+        // This ensures reliable metadata transmission (headers can be lost/modified by proxies)
         const raw = req.query.raw === '1' || req.query.raw === 'true';
         if (raw) {
-            // Set metadata headers (small, safe metadata)
-            if (dataset.salt) res.setHeader('x-salt', dataset.salt);
-            if (dataset.iv) res.setHeader('x-iv', dataset.iv);
-            if (dataset.encryptedFileName) res.setHeader('x-encrypted-filename', dataset.encryptedFileName);
-            if (dataset.encryptedFileNameSalt) res.setHeader('x-encrypted-filename-salt', dataset.encryptedFileNameSalt);
-            if (dataset.encryptedFileNameIv) res.setHeader('x-encrypted-filename-iv', dataset.encryptedFileNameIv);
-            if (dataset.mimeType) res.setHeader('content-type', dataset.mimeType);
-
-            return res.send(dataset.encryptedBlob);
+            console.log('📤 [SERVER] Sending encrypted blob and metadata in JSON');
+            const encryptedBase64 = dataset.encryptedBlob.toString('base64');
+            console.log('✓ [SERVER] JSON response prepared - blob size:', encryptedBase64.length);
+            
+            return res.json({
+                blob: encryptedBase64,
+                salt: dataset.salt,
+                iv: dataset.iv,
+                encryptedFileName: dataset.encryptedFileName,
+                encryptedFileNameSalt: dataset.encryptedFileNameSalt,
+                encryptedFileNameIv: dataset.encryptedFileNameIv,
+                mimeType: dataset.mimeType
+            });
         }
 
         const encryptedBase64 = dataset.encryptedBlob.toString('base64');
 
+        console.log('📤 [SERVER] Sending JSON response with metadata');
         res.json({
             encryptedBlobBase64: encryptedBase64,
             salt: dataset.salt,
@@ -158,7 +202,6 @@ export const getDatasetBlob = async (req: Request, res: Response) => {
             mimeType: dataset.mimeType
         });
     } catch (err) {
-        console.error(err);
-        res.status(500).send('Server Error');
+        handleError(res, err, 'getDatasetBlob');
     }
 };

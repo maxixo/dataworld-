@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 
 const DatasetSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -6,8 +6,8 @@ const DatasetSchema = new mongoose.Schema({
     fileName: { type: String }, // Original file name
     fileSize: { type: Number }, // File size in bytes
     // Parsed JSON data (for non-encrypted uploads)
-    data: { type: Array },
-    columns: { type: Array },
+    data: [{ type: mongoose.Schema.Types.Mixed }],
+    columns: [{ type: mongoose.Schema.Types.Mixed }],
     rowCount: { type: Number },
     // Encrypted file metadata (for encrypted uploads)
     isEncrypted: { type: Boolean, default: false },
@@ -22,4 +22,25 @@ const DatasetSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 });
 
-export const Dataset = mongoose.model('Dataset', DatasetSchema);
+// TypeScript interface for Dataset document
+export interface IDataset extends Document {
+    user: mongoose.Types.ObjectId;
+    name: string;
+    fileName?: string | null;
+    fileSize?: number | null;
+    data?: any[];
+    columns?: any[];
+    rowCount?: number | null;
+    isEncrypted: boolean;
+    label?: string | null;
+    salt?: string | null;
+    iv?: string | null;
+    encryptedFileName?: string | null;
+    encryptedFileNameSalt?: string | null;
+    encryptedFileNameIv?: string | null;
+    encryptedBlob?: Buffer | null;
+    mimeType?: string | null;
+    createdAt: Date;
+}
+
+export const Dataset = mongoose.model<IDataset>('Dataset', DatasetSchema);

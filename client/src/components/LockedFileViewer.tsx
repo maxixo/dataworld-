@@ -20,27 +20,35 @@ export const LockedFileViewer: React.FC<Props> = ({ id, label, mimeType, onClose
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      // Request raw binary to avoid base64 overhead
+      console.log('🔓 [DOWNLOAD] Fetching encrypted blob for:', id);
+      // Request JSON with metadata (reliable transmission)
       const resp = await axios.get(`${API_BASE_URL}/datasets/${id}/blob?raw=1`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-        responseType: 'arraybuffer'
+        headers: { 'Authorization': `Bearer ${token}` }
       });
 
-      // Read metadata from headers (set by server)
-      const salt = resp.headers['x-salt'] || resp.headers['X-Salt'] || null;
-      const iv = resp.headers['x-iv'] || resp.headers['X-Iv'] || null;
-      const encryptedFileName = resp.headers['x-encrypted-filename'] || resp.headers['X-Encrypted-Filename'] || null;
-      const encryptedFileNameSalt = resp.headers['x-encrypted-filename-salt'] || resp.headers['X-Encrypted-Filename-Salt'] || null;
-      const encryptedFileNameIv = resp.headers['x-encrypted-filename-iv'] || resp.headers['X-Encrypted-Filename-Iv'] || null;
-      const serverMime = resp.headers['content-type'] || mimeType || 'application/octet-stream';
+      // Parse metadata from JSON response
+      const { blob: base64Blob, salt, iv, encryptedFileName, 
+              encryptedFileNameSalt, encryptedFileNameIv, mimeType: serverMime } = resp.data;
+      
+      console.log('🔓 [DOWNLOAD] Received metadata from JSON - salt:', salt, 'iv:', iv, 
+                  'encryptedFileName:', encryptedFileName, 'nameSalt:', encryptedFileNameSalt, 
+                  'nameIv:', encryptedFileNameIv);
 
-      const bytes = new Uint8Array(resp.data);
+      // Convert base64 to ArrayBuffer
+      const binaryString = atob(base64Blob);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      
+      console.log('🔓 [DOWNLOAD] Converted base64 to bytes - length:', bytes.length, 'password provided:', !!password);
 
       // Decrypt blob and filename
       const blob = await decryptToBlob(bytes.buffer, password, salt, iv, serverMime as string);
       const filename = encryptedFileName
         ? await decryptFilename(encryptedFileName, password, encryptedFileNameSalt, encryptedFileNameIv)
         : (label || `file-${id}`);
+      console.log('🔓 [DOWNLOAD] Decryption successful - filename:', filename, 'blobSize:', blob.size);
 
       // Trigger download
       const url = URL.createObjectURL(blob);
@@ -55,6 +63,7 @@ export const LockedFileViewer: React.FC<Props> = ({ id, label, mimeType, onClose
       setLoading(false);
       onClose();
     } catch (err: any) {
+      console.log('🔓 [DOWNLOAD] Decryption failed - error:', err.message);
       setError(err.response?.data?.message || err.message || 'Decryption failed');
       setLoading(false);
     }

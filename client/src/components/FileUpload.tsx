@@ -1,9 +1,7 @@
 import React, { useState, useCallback } from 'react';
-import Papa from 'papaparse';
-import * as XLSX from 'xlsx';
-import axios from 'axios';
-import { encryptBlob, encryptFilename } from '../utils/fileEncryption';
-import { API_BASE_URL } from '../config/api';
+import { parseFile } from '../services/fileParser';
+import { prepareEncryptedUpload } from '../services/encryptionService';
+import { uploadEncryptedDataset, uploadNonEncryptedDataset } from '../services/uploadService';
 
 interface FileUploadProps {
     onUploadSuccess: () => void;
@@ -31,68 +29,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
         setFileName(file.name);
         setIsUploading(true);
 
-        const fileExtension = file.name.split('.').pop()?.toLowerCase();
-
         try {
-            let data: any[] = [];
-            let columns: string[] = [];
-
-            // Process file based on type
-            if (fileExtension === 'csv') {
-                // Parse CSV using PapaParse
-                await new Promise<void>((resolve, reject) => {
-                    Papa.parse(file, {
-                        header: true,
-                        skipEmptyLines: true,
-                        complete: (results) => {
-                            data = results.data;
-                            columns = results.meta.fields || [];
-                            resolve();
-                        },
-                        error: (err) => {
-                            reject(new Error(`Failed to parse CSV: ${err.message}`));
-                        }
-                    });
-                });
-            } else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
-                // Parse Excel using xlsx library
-                const arrayBuffer = await file.arrayBuffer();
-                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-                const sheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[sheetName];
-                const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
-                
-                if (jsonData.length > 0) {
-                    data = jsonData;
-                    columns = Object.keys(jsonData[0] || " " );
-                } else {
-                    throw new Error('Excel file is empty or has no data');
-                }
-            } else if (fileExtension === 'json') {
-                // Parse JSON
-                const text = await file.text();
-                const jsonData = JSON.parse(text);
-                
-                if (Array.isArray(jsonData) && jsonData.length > 0) {
-                    data = jsonData;
-                    columns = Object.keys(jsonData[0] as object);
-                } else {
-                    throw new Error('JSON file must contain an array of objects');
-                }
-            } else {
-                throw new Error('Unsupported file type. Please upload CSV, Excel, or JSON files.');
-            }
-
-            // Validate data
-            if (data.length === 0) {
-                throw new Error('File contains no data');
-            }
-
-            const rowCount = data.length;
-
-            // Get token from localStorage
-            const token = localStorage.getItem('token');
-
             // Remove file extension from name
             const baseName = file.name.replace(/\.[^/.]+$/, '');
 
@@ -101,76 +38,44 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
                 const password = window.prompt('Enter password to encrypt this file');
                 if (!password) throw new Error('Encryption password is required');
 
-                // Encrypt the raw file blob
-                const { encryptedBlob, salt, iv } = await encryptBlob(file, password);
-
-                // Encrypt filename as a small encrypted payload
-                const { encryptedNameHex, salt: fnameSalt, iv: fnameIv } = await encryptFilename(file.name, password);
-
-                // Convert encryptedBlob to base64
-                const arrayBuffer = await encryptedBlob.arrayBuffer();
-                const uint8 = new Uint8Array(arrayBuffer);
-                let binary = '';
-                for (let i = 0; i < uint8.length; i++) binary += String.fromCharCode(uint8[i]);
-                const encryptedBase64 = btoa(binary);
-
-                const response = await axios.post(
-                    `${API_BASE_URL}/datasets`,
-                    {
-                        name: baseName,
-                        fileName: file.name,
-                        fileSize: file.size,
-                        // encrypted payload
-                        encryptedBlobBase64: encryptedBase64,
-                        salt,
-                        iv,
-                        isEncrypted: true,
-                        label: baseName,
-                        encryptedFileName: encryptedNameHex,
-                        encryptedFileNameSalt: fnameSalt,
-                        encryptedFileNameIv: fnameIv,
-                        mimeType: file.type
-                    },
-                    {
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json'
-                        }
-                    }
-                );
-
-                if (response.status === 200) {
-                    setIsUploading(false);
-                    setFileName(null);
-                    onUploadSuccess();
-                }
-                return;
-            }
-
-            // Upload non-encrypted parsed data to server
-            const response = await axios.post(
-                `${API_BASE_URL}/datasets`,
-                {
+                // Prepare encrypted upload data
+                const encryptedData = await prepareEncryptedUpload(file, password);
+                
+                // Upload encrypted dataset
+                await uploadEncryptedDataset({
                     name: baseName,
                     fileName: file.name,
                     fileSize: file.size,
-                    data,
-                    columns,
-                    rowCount
-                },
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
+                    encryptedData,
+                    label: baseName,
+                    mimeType: file.type
+                });
 
-            if (response.status === 200) {
                 setIsUploading(false);
                 setFileName(null);
                 onUploadSuccess();
+                return;
             }
+
+            // Parse file for non-encrypted upload
+            const parsedData = await parseFile(file);
+            
+            // Validate data
+            if (parsedData.data.length === 0) {
+                throw new Error('File contains no data');
+            }
+
+            // Upload non-encrypted dataset
+            await uploadNonEncryptedDataset({
+                name: baseName,
+                fileName: file.name,
+                fileSize: file.size,
+                parsedData
+            });
+
+            setIsUploading(false);
+            setFileName(null);
+            onUploadSuccess();
         } catch (err: any) {
             setError(err.message || 'Failed to upload dataset');
             setIsUploading(false);
