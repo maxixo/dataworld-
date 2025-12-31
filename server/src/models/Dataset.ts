@@ -5,9 +5,20 @@ const DatasetSchema = new mongoose.Schema({
     name: { type: String, required: true },
     fileName: { type: String }, // Original file name
     fileSize: { type: Number }, // File size in bytes
-    data: { type: Array, required: true }, // Store parsed JSON data
-    columns: { type: Array, required: true },
-    rowCount: { type: Number, required: true },
+    // Parsed JSON data (for non-encrypted uploads)
+    data: { type: Array },
+    columns: { type: Array },
+    rowCount: { type: Number },
+    // Encrypted file metadata (for encrypted uploads)
+    isLocked: { type: Boolean, default: false },
+    label: { type: String, default: null },
+    salt: { type: String, default: null },
+    iv: { type: String, default: null },
+    encryptedFileName: { type: String, default: null },
+    encryptedFileNameSalt: { type: String, default: null },
+    encryptedFileNameIv: { type: String, default: null },
+    encryptedBlob: { type: Buffer, default: null },
+    mimeType: { type: String, default: null },
     createdAt: { type: Date, default: Date.now }
 });
 

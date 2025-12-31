@@ -5,6 +5,7 @@ export interface IDraft extends Document {
     title: string;
     content: string;
     isLocked: boolean;
+    label?: string;
     passwordHash: string | null;
     passwordSalt: string | null;
     iv: string | null;
@@ -18,6 +19,7 @@ const DraftSchema = new mongoose.Schema({
     title: { type: String, required: true, default: 'Untitled Draft' },
     content: { type: String, required: true, default: '' },
     isLocked: { type: Boolean, default: false },
+    label: { type: String, default: null },
     passwordHash: { type: String, default: null },
     passwordSalt: { type: String, default: null },
     iv: { type: String, default: null },

@@ -11,6 +11,7 @@ interface DraftData {
     title: string;
     content: string;
     isLocked?: boolean;
+    label?: string;
     passwordHash?: string | null;
     passwordSalt?: string | null;
     iv?: string | null;
@@ -33,8 +34,8 @@ export const DraftEditor: React.FC = () => {
     const [showUnlockModal, setShowUnlockModal] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     
-    // Locked note name
-    const [lockedNoteName, setLockedNoteName] = useState('My locked notes 1');
+    // Locked note label (human-readable identifier)
+    const [label, setLabel] = useState('My locked notes 1');
     
     // Password states
     const [password, setPassword] = useState('');
@@ -276,13 +277,14 @@ export const DraftEditor: React.FC = () => {
                 draftId = response.data._id;
             }
             
-            // Encrypt the draft with the custom locked note name
-            const encrypted = await encryptDraft(lockedNoteName, content, password);
+            // Encrypt the draft with the custom label
+            const encrypted = await encryptDraft(label, content, password);
             
             const draftData = {
                 title: encrypted.encryptedTitle,
                 content: encrypted.encryptedContent,
                 isLocked: true,
+                label: label,
                 passwordHash: encrypted.passwordHash,
                 passwordSalt: encrypted.passwordSalt,
                 iv: encrypted.iv
@@ -472,13 +474,13 @@ export const DraftEditor: React.FC = () => {
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Note Name
+                                    Note Label
                                 </label>
                                 <input
                                     type="text"
-                                    value={lockedNoteName}
-                                    onChange={(e) => setLockedNoteName(e.target.value)}
-                                    placeholder="Enter note name"
+                                    value={label}
+                                    onChange={(e) => setLabel(e.target.value)}
+                                    placeholder="Enter a label to identify this note"
                                     className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                             </div>
@@ -518,7 +520,7 @@ export const DraftEditor: React.FC = () => {
                                     setShowLockModal(false);
                                     setPassword('');
                                     setConfirmPassword('');
-                                    setLockedNoteName('My locked notes 1');
+                                    setLabel('My locked notes 1');
                                 }}
                                 className="flex-1 px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                             >

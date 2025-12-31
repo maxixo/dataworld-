@@ -73,7 +73,7 @@ export const Dashboard: React.FC = () => {
                 title: `Uploaded ${dataset.name}`,
                 timestamp: dataset.createdAt || new Date().toISOString(),
                 status: 'completed' as const,
-                user: `${dataset.rowCount} rows, ${dataset.columns.length} columns`
+                user: `${dataset.rowCount || 0} rows, ${dataset.columns?.length || 0} columns`
             })).slice(0, 10); // Show only 10 most recent
 
             setActivities(activityItems);

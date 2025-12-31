@@ -12,7 +12,7 @@ interface AuthRequest extends Request {
 // Create a new draft
 export const createDraft = async (req: AuthRequest, res: Response) => {
     try {
-        const { title, content } = req.body;
+        const { title, content, label } = req.body;
         
         // Validate word count (max 1000 words)
         const wordCount = content.trim().split(/\s+/).length;
@@ -25,7 +25,8 @@ export const createDraft = async (req: AuthRequest, res: Response) => {
         const draft = new Draft({
             user: req.user?.userId,
             title: title || 'Untitled Draft',
-            content: content || ''
+            content: content || '',
+            label: label || null
         });
 
         await draft.save();
@@ -96,7 +97,7 @@ export const getDraft = async (req: AuthRequest, res: Response) => {
 // Update a draft
 export const updateDraft = async (req: AuthRequest, res: Response) => {
     try {
-        const { title, content, isLocked, passwordHash, passwordSalt, iv } = req.body;
+        const { title, content, isLocked, passwordHash, passwordSalt, iv, label } = req.body;
         
         // Validate word count (max 1000 words)
         if (content) {
@@ -119,6 +120,7 @@ export const updateDraft = async (req: AuthRequest, res: Response) => {
         if (passwordHash !== undefined) updateData.passwordHash = passwordHash;
         if (passwordSalt !== undefined) updateData.passwordSalt = passwordSalt;
         if (iv !== undefined) updateData.iv = iv;
+        if (label !== undefined) updateData.label = label;
 
         const draft = await Draft.findOneAndUpdate(
             { _id: req.params.id, user: req.user?.userId },

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MiniChart } from './MiniChart';
 import { formatFileSize, getRelativeTime, getFileType, getFileTypeColor, generateChartData } from '../utils/formatters';
+import { LockedFileViewer } from './LockedFileViewer';
 
 interface DatasetCardProps {
     id: string;
@@ -10,6 +11,8 @@ interface DatasetCardProps {
     fileSize?: number;
     data?: any[];
     onDelete?: () => void;
+    isLocked?: boolean;
+    label?: string | null;
 }
 
 export const DatasetCard: React.FC<DatasetCardProps> = ({
@@ -18,10 +21,13 @@ export const DatasetCard: React.FC<DatasetCardProps> = ({
     updatedAt,
     fileSize = 0,
     data = [],
-    onDelete
+    onDelete,
+    isLocked,
+    label
 }) => {
     const navigate = useNavigate();
     const [menuOpen, setMenuOpen] = useState(false);
+    const [showLockedViewer, setShowLockedViewer] = useState(false);
 
     const fileType = getFileType(name);
     const { bg, icon, badge, chartColor } = getFileTypeColor(fileType);
@@ -80,9 +86,10 @@ export const DatasetCard: React.FC<DatasetCardProps> = ({
     };
 
     return (
+        <>
         <div
             onClick={handleCardClick}
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-lg transition-all duration-200 p-5 cursor-pointer relative border border-gray-100 dark:border-gray-700"
+            className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-lg transition-all duration-200 p-5 cursor-pointer relative border border-gray-100 dark:border-gray-700 ${isLocked ? 'opacity-70' : ''}`}
         >
             {/* Header */}
             <div className="flex items-start justify-between mb-4">
@@ -104,7 +111,7 @@ export const DatasetCard: React.FC<DatasetCardProps> = ({
 
                     {/* Dropdown Menu */}
                     {menuOpen && (
-                        <div className="absolute right-0 mt-1 w-32 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-10">
+                        <div className="absolute right-0 mt-1 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-10">
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -120,15 +127,35 @@ export const DatasetCard: React.FC<DatasetCardProps> = ({
                             >
                                 Delete
                             </button>
+                            {isLocked && (
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); setShowLockedViewer(true); setMenuOpen(false); }}
+                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                >
+                                    Decrypt & Download
+                                </button>
+                            )}
                         </div>
                     )}
                 </div>
             </div>
 
             {/* Dataset Info */}
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1 truncate">
-                {name.replace(/\.(csv|json|xlsx|txt)$/i, '')}
-            </h3>
+            <div className="flex items-center justify-between mb-1">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+                    {name.replace(/\.(csv|json|xlsx|txt)$/i, '')}
+                </h3>
+                {isLocked && (
+                    <span className="ml-3 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300">
+                        <svg className="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M12 17a1 1 0 001-1v-1a1 1 0 10-2 0v1a1 1 0 001 1z" />
+                            <rect x="5" y="8" width="14" height="10" rx="2" />
+                            <path d="M8 8V7a4 4 0 018 0v1" />
+                        </svg>
+                        Locked
+                    </span>
+                )}
+            </div>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
                 Updated {getRelativeTime(updatedAt)}
             </p>
@@ -151,5 +178,9 @@ export const DatasetCard: React.FC<DatasetCardProps> = ({
                 </span>
             </div>
         </div>
+        {showLockedViewer && (
+            <LockedFileViewer id={id} label={label} onClose={() => setShowLockedViewer(false)} />
+        )}
+        </>
     );
 };

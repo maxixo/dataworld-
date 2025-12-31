@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import axios from 'axios';
+import { encryptBlob, encryptFilename } from '../utils/fileEncryption';
 import { API_BASE_URL } from '../config/api';
 
 interface FileUploadProps {
@@ -13,6 +14,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
     const [isUploading, setIsUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [fileName, setFileName] = useState<string | null>(null);
+    const [encryptOnUpload, setEncryptOnUpload] = useState<boolean>(false);
 
     const handleDragOver = useCallback((e: React.DragEvent) => {
         e.preventDefault();
@@ -94,7 +96,58 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
             // Remove file extension from name
             const baseName = file.name.replace(/\.[^/.]+$/, '');
 
-            // Upload to server
+            // If user requested encryption, prompt for password and upload encrypted blob
+            if (encryptOnUpload) {
+                const password = window.prompt('Enter password to encrypt this file');
+                if (!password) throw new Error('Encryption password is required');
+
+                // Encrypt the raw file blob
+                const { encryptedBlob, salt, iv } = await encryptBlob(file, password);
+
+                // Encrypt filename as a small encrypted payload
+                const { encryptedNameHex, salt: fnameSalt, iv: fnameIv } = await encryptFilename(file.name, password);
+
+                // Convert encryptedBlob to base64
+                const arrayBuffer = await encryptedBlob.arrayBuffer();
+                const uint8 = new Uint8Array(arrayBuffer);
+                let binary = '';
+                for (let i = 0; i < uint8.length; i++) binary += String.fromCharCode(uint8[i]);
+                const encryptedBase64 = btoa(binary);
+
+                const response = await axios.post(
+                    `${API_BASE_URL}/datasets`,
+                    {
+                        name: baseName,
+                        fileName: file.name,
+                        fileSize: file.size,
+                        // encrypted payload
+                        encryptedBlobBase64: encryptedBase64,
+                        salt,
+                        iv,
+                        isLocked: true,
+                        label: baseName,
+                        encryptedFileName: encryptedNameHex,
+                        encryptedFileNameSalt: fnameSalt,
+                        encryptedFileNameIv: fnameIv,
+                        mimeType: file.type
+                    },
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+
+                if (response.status === 200) {
+                    setIsUploading(false);
+                    setFileName(null);
+                    onUploadSuccess();
+                }
+                return;
+            }
+
+            // Upload non-encrypted parsed data to server
             const response = await axios.post(
                 `${API_BASE_URL}/datasets`,
                 {
@@ -194,11 +247,17 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
                             <p className="text-sm text-gray-600 dark:text-gray-400 max-w-md">
                                 Drag and drop CSV, JSON, or Excel files here to begin analysis.
                             </p>
-                            <label htmlFor="file-upload">
-                                <div className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium cursor-pointer transition-colors shadow-lg hover:shadow-xl">
-                                    Browse Files
-                                </div>
-                            </label>
+                            <div className="flex flex-col items-center gap-2">
+                                <label htmlFor="file-upload">
+                                    <div className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium cursor-pointer transition-colors shadow-lg hover:shadow-xl">
+                                        Browse Files
+                                    </div>
+                                </label>
+                                <label className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 mt-2">
+                                    <input type="checkbox" checked={encryptOnUpload} onChange={(e) => setEncryptOnUpload(e.target.checked)} />
+                                    <span>Encrypt file before upload</span>
+                                </label>
+                            </div>
                         </>
                     )}
                 </div>

@@ -12,6 +12,7 @@ interface Draft {
     title: string;
     content: string;
     isLocked: boolean;
+    label?: string;
     isDeleted: boolean;
     createdAt: string;
     updatedAt: string;
@@ -187,11 +188,18 @@ export const Drafts: React.FC = () => {
                         <div className="flex justify-between items-start">
                             <div className="flex-1 min-w-0">
                                 <h3 className="font-medium text-gray-900 dark:text-white truncate">
-                                    {draft.title}
+                                    {draft.isLocked && draft.label ? draft.label : draft.title}
                                 </h3>
-                                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
-                                    {draft.content.substring(0, 100)}{draft.content.length > 100 && '...'}
-                                </p>
+                                {draft.isLocked && draft.label && (
+                                    <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                                        🔒 Encrypted Note
+                                    </p>
+                                )}
+                                {!draft.isLocked && (
+                                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
+                                        {draft.content.substring(0, 100)}{draft.content.length > 100 && '...'}
+                                    </p>
+                                )}
                                 <p className="mt-2 text-xs text-gray-400 dark:text-gray-500">
                                     {new Date(draft.updatedAt).toLocaleDateString()}
                                 </p>
