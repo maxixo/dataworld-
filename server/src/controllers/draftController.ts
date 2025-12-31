@@ -96,7 +96,7 @@ export const getDraft = async (req: AuthRequest, res: Response) => {
 // Update a draft
 export const updateDraft = async (req: AuthRequest, res: Response) => {
     try {
-        const { title, content, isLocked, password } = req.body;
+        const { title, content, isLocked, passwordHash, passwordSalt, iv } = req.body;
         
         // Validate word count (max 1000 words)
         if (content) {
@@ -116,7 +116,9 @@ export const updateDraft = async (req: AuthRequest, res: Response) => {
         if (title !== undefined) updateData.title = title;
         if (content !== undefined) updateData.content = content;
         if (isLocked !== undefined) updateData.isLocked = isLocked;
-        if (password !== undefined) updateData.password = password;
+        if (passwordHash !== undefined) updateData.passwordHash = passwordHash;
+        if (passwordSalt !== undefined) updateData.passwordSalt = passwordSalt;
+        if (iv !== undefined) updateData.iv = iv;
 
         const draft = await Draft.findOneAndUpdate(
             { _id: req.params.id, user: req.user?.userId },
