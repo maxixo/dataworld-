@@ -4,6 +4,7 @@ import {
     createDraft,
     getDrafts,
     getDraft,
+    getAllLockedNotes,
     updateDraft,
     deleteDraft,
     restoreDraft,
@@ -20,6 +21,9 @@ router.post('/', createDraft);
 
 // Get all drafts (with type filter: 'drafts', 'locked-notes', 'trash')
 router.get('/', getDrafts);
+
+// Get all locked notes
+router.get('/locked', getAllLockedNotes);
 
 // Get a single draft by ID
 router.get('/:id', getDraft);

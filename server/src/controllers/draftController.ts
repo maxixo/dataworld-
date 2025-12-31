@@ -60,6 +60,21 @@ export const getDrafts = async (req: AuthRequest, res: Response) => {
     }
 };
 
+// Get all locked notes for a user
+export const getAllLockedNotes = async (req: AuthRequest, res: Response) => {
+    try {
+        const drafts = await Draft.find({
+            user: req.user?.userId,
+            isLocked: true,
+            isDeleted: false
+        }).sort({ updatedAt: -1 });
+        
+        res.json(drafts);
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // Get a single draft by ID
 export const getDraft = async (req: AuthRequest, res: Response) => {
     try {
@@ -81,7 +96,7 @@ export const getDraft = async (req: AuthRequest, res: Response) => {
 // Update a draft
 export const updateDraft = async (req: AuthRequest, res: Response) => {
     try {
-        const { title, content } = req.body;
+        const { title, content, isLocked, password } = req.body;
         
         // Validate word count (max 1000 words)
         if (content) {
@@ -93,13 +108,19 @@ export const updateDraft = async (req: AuthRequest, res: Response) => {
             }
         }
 
+        const updateData: any = {
+            updatedAt: new Date()
+        };
+
+        // Only update fields that are provided
+        if (title !== undefined) updateData.title = title;
+        if (content !== undefined) updateData.content = content;
+        if (isLocked !== undefined) updateData.isLocked = isLocked;
+        if (password !== undefined) updateData.password = password;
+
         const draft = await Draft.findOneAndUpdate(
             { _id: req.params.id, user: req.user?.userId },
-            { 
-                title: title || undefined,
-                content: content || undefined,
-                updatedAt: new Date()
-            },
+            updateData,
             { new: true }
         );
 
