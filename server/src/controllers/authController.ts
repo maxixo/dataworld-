@@ -45,7 +45,9 @@ export const signup = async (req: Request, res: Response) => {
         // Create token
         const payload = {
             user: {
-                id: user.id
+                userId: user.id,
+                email: user.email,
+                username: user.username
             }
         };
 
@@ -129,7 +131,9 @@ export const googleAuth = async (req: Request, res: Response) => {
         // Create JWT
         const tokenPayload = {
             user: {
-                id: user.id
+                userId: user.id,
+                email: user.email,
+                username: user.username
             }
         };
 
@@ -195,7 +199,9 @@ export const login = async (req: Request, res: Response) => {
         // Return token
         const payload = {
             user: {
-                id: user.id
+                userId: user.id,
+                email: user.email,
+                username: user.username
             }
         };
 

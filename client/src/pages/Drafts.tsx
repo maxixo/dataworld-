@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Header } from '../components/Header';
 import axios from 'axios';
@@ -20,10 +20,30 @@ interface Draft {
 export const Drafts: React.FC = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const [activeTab, setActiveTab] = useState<TabType>('drafts');
     const [drafts, setDrafts] = useState<Draft[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    // Read tab from URL on page load and when URL changes
+    useEffect(() => {
+        const urlParams = new URLSearchParams(location.search);
+        const tabParam = urlParams.get('tab') as TabType;
+        if (tabParam === 'drafts' || tabParam === 'locked-notes' || tabParam === 'trash') {
+            setActiveTab(tabParam);
+        }
+    }, [location.search]);
+
+    // Refresh drafts when window regains focus
+    useEffect(() => {
+        const handleFocus = () => {
+            fetchDrafts();
+        };
+        
+        window.addEventListener('focus', handleFocus);
+        return () => window.removeEventListener('focus', handleFocus);
+    }, [activeTab]);
 
     const fetchDrafts = async () => {
         try {

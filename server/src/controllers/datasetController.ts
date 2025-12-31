@@ -5,7 +5,7 @@ export const uploadDataset = async (req: Request, res: Response) => {
     try {
         const { name, data, columns, rowCount, fileName, fileSize } = req.body;
         // @ts-ignore
-        const userId = req.user.id;
+        const userId = req.user.userId;
 
         const newDataset = new Dataset({
             user: userId,
@@ -29,7 +29,7 @@ export const uploadDataset = async (req: Request, res: Response) => {
 export const getDatasets = async (req: Request, res: Response) => {
     try {
         // @ts-ignore
-        const userId = req.user.id;
+        const userId = req.user.userId;
 
         // Try to fetch specific user lists from cache if you implement list caching
         // For now, simple DB fetch
@@ -45,7 +45,7 @@ export const getDatasets = async (req: Request, res: Response) => {
 export const getUploadHistory = async (req: Request, res: Response) => {
     try {
         // @ts-ignore
-        const userId = req.user.id;
+        const userId = req.user.userId;
 
         const history = await Dataset.find({ user: userId })
             .select('name fileName fileSize rowCount columns createdAt')
@@ -64,7 +64,7 @@ export const getDatasetById = async (req: Request, res: Response) => {
         const { id } = req.params;
 
         // @ts-ignore
-        const userId = req.user.id;
+        const userId = req.user.userId;
 
         const dataset = await Dataset.findById(id);
         if (!dataset) {
