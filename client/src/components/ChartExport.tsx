@@ -93,11 +93,11 @@ export const ChartExport: React.FC<ChartExportProps> = ({ chartRef, data, fileNa
     };
 
     return (
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 max-w-sm mx-auto sm:max-w-none sm:mx-0">
             <button
                 onClick={exportAsPNG}
                 disabled={isExporting}
-                className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white text-sm rounded-lg transition-colors"
+                className="flex w-full items-center justify-center gap-2 min-h-[44px] px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white text-sm rounded-lg transition-colors"
                 title="Export chart as PNG image"
             >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -109,7 +109,7 @@ export const ChartExport: React.FC<ChartExportProps> = ({ chartRef, data, fileNa
             <button
                 onClick={exportAsPDF}
                 disabled={isExporting}
-                className="flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white text-sm rounded-lg transition-colors"
+                className="flex w-full items-center justify-center gap-2 min-h-[44px] px-3 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white text-sm rounded-lg transition-colors"
                 title="Export chart as PDF document"
             >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -121,7 +121,7 @@ export const ChartExport: React.FC<ChartExportProps> = ({ chartRef, data, fileNa
             <button
                 onClick={exportAsCSV}
                 disabled={!data || data.length === 0}
-                className="flex items-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white text-sm rounded-lg transition-colors"
+                className="flex w-full items-center justify-center gap-2 min-h-[44px] px-3 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white text-sm rounded-lg transition-colors"
                 title="Export data as CSV file"
             >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -133,7 +133,7 @@ export const ChartExport: React.FC<ChartExportProps> = ({ chartRef, data, fileNa
             <button
                 onClick={exportAsJSON}
                 disabled={!data || data.length === 0}
-                className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white text-sm rounded-lg transition-colors"
+                className="flex w-full items-center justify-center gap-2 min-h-[44px] px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white text-sm rounded-lg transition-colors"
                 title="Export data as JSON file"
             >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

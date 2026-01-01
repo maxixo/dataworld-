@@ -14,10 +14,10 @@ export const DatasetFilters: React.FC<DatasetFiltersProps> = ({
     const filters: FilterType[] = ['ALL', 'CSV', 'JSON', 'EXCEL'];
 
     return (
-        <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Your Datasets</h2>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+            <h2 className="hidden sm:block text-xl font-bold text-gray-900 dark:text-white">Your Datasets</h2>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2">
                 {filters.map((filter) => (
                     <button
                         key={filter}

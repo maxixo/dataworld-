@@ -25,6 +25,7 @@ interface AutosaveState {
     status: 'idle' | 'saving' | 'saved' | 'error';
     lastSaveTime: Date | null;
     error: string | null;
+    triggerImmediateSave: () => void;
 }
 
 export const useAutosave = (
