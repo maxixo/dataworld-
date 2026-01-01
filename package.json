@@ -1,18 +1,12 @@
 {
-  "name": "dataworld",
+  "name": "dataworld-backend",
   "version": "1.0.0",
-  "private": true,
-  "workspaces": [
-    "client",
-    "server"
-  ],
   "scripts": {
-    "install:all": "npm install",
-    "build:client": "cd client && npm run build",
-    "build:server": "cd server && npm run build"
-    
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "nodemon src/server.ts"
   },
-  "devDependencies": {
-    "concurrently": "^8.2.2"
+  "engines": {
+    "node": "18.x"
   }
 }
