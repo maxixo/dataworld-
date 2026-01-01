@@ -132,21 +132,21 @@ export const Header: React.FC<HeaderProps> = ({ username, onLogout }) => {
                         </button>
 
                         {/* User Menu */}
-                        <div className="relative">
+                        <div className="relative flex-shrink-0">
                             <button
                                 onClick={handleToggleUserMenu}
-                                className="flex items-center gap-2 hover:opacity-80 transition-opacity rounded-full"
+                                className="flex min-h-[44px] min-w-[44px] items-center gap-2 rounded-full hover:opacity-80 transition-opacity flex-shrink-0"
                                 aria-haspopup="menu"
                                 aria-expanded={userMenuOpen}
                             >
-                                <div className="w-10 h-10 min-w-[44px] min-h-[44px] bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-semibold">
+                                <div className="w-11 h-11 min-w-[44px] min-h-[44px] bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
                                     {username.charAt(0).toUpperCase()}
                                 </div>
                             </button>
 
                             {/* Dropdown Menu */}
                             {userMenuOpen && (
-                                <div className="absolute right-0 mt-2 w-64 max-w-[calc(100vw-2rem)] bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2">
+                                <div className="absolute right-0 mt-2 w-64 min-w-[16rem] max-w-[calc(100vw-2rem)] bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2">
                                     <div className="flex items-start justify-between gap-3 px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                                         <div>
                                             <p className="text-sm font-medium text-gray-900 dark:text-white">{username}</p>

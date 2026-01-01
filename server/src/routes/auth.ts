@@ -14,7 +14,10 @@ router.post(
     '/signup',
     authRateLimiter,
     [
-        body('username', 'Username is required and should be alphanumeric').isAlphanumeric().trim().notEmpty(),
+        body('username', 'Username is required and may contain letters, numbers, spaces, dashes, or underscores')
+            .trim()
+            .notEmpty()
+            .matches(/^[A-Za-z0-9 _-]+$/),
         body('email', 'Please include a valid email').isEmail().normalizeEmail(),
         body('password', 'Please enter a password with 8 or more characters, including at least one letter and one number')
             .isLength({ min: 8 })

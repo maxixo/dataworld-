@@ -5,6 +5,7 @@ import { Header } from '../components/Header';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
 import { encryptDraft, decryptDraft, verifyPassword, hashPassword } from '../utils/encryption';
+import { useAutosave } from '../hooks/useAutosave';
 
 interface DraftData {
     _id?: string;
@@ -27,6 +28,7 @@ export const DraftEditor: React.FC = () => {
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [draftCreated, setDraftCreated] = useState(false);
     const [isEncrypted, setIsEncrypted] = useState(false);
     const [locking, setLocking] = useState(false);
     const [showLockModal, setShowLockModal] = useState(false);
@@ -57,12 +59,39 @@ export const DraftEditor: React.FC = () => {
         }
     }, [id]);
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setSaved(false);
-        }, 2000);
-        return () => clearTimeout(timer);
-    }, [saved]);
+    // Helper function to format last save time
+    const formatLastSaveTime = (date: Date | null): string => {
+        if (!date) return 'Not saved yet';
+        
+        const now = new Date();
+        const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+        
+        if (diffInSeconds < 60) {
+            return 'Just now';
+        } else if (diffInSeconds < 3600) {
+            const minutes = Math.floor(diffInSeconds / 60);
+            return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+        } else if (diffInSeconds < 86400) {
+            const hours = Math.floor(diffInSeconds / 3600);
+            return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+        } else {
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+    };
+
+    // Initialize autosave hook
+    const autosave = useAutosave(title, content, {
+        draftId: id,
+        isEncrypted: isEncrypted && !!decryptionPasswordRef.current,
+        password: decryptionPasswordRef.current || password,
+        onSaved: () => {
+            setSaved(true);
+            setTimeout(() => setSaved(false), 2000);
+        },
+        onError: (errorMsg) => {
+            setError(errorMsg);
+        }
+    });
 
     const fetchDraft = async () => {
         try {
@@ -178,6 +207,7 @@ export const DraftEditor: React.FC = () => {
             return;
         }
 
+        // Trigger immediate save using autosave hook
         setSaving(true);
         setError(null);
         console.log('Saving draft...');
@@ -203,9 +233,17 @@ export const DraftEditor: React.FC = () => {
                     iv: encrypted.iv
                 };
 
-                await axios.put(`${API_BASE_URL}/drafts/${id}`, draftData, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                if (id) {
+                    await axios.put(`${API_BASE_URL}/drafts/${id}`, draftData, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                } else {
+                    const response = await axios.post(`${API_BASE_URL}/drafts`, draftData, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    setDraftCreated(true);
+                    console.log('New draft created with ID:', response.data._id);
+                }
                 console.log('Encrypted draft saved successfully');
             } else {
                 // Save normally for unencrypted drafts
@@ -220,6 +258,7 @@ export const DraftEditor: React.FC = () => {
                     const response = await axios.post(`${API_BASE_URL}/drafts`, draftData, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
+                    setDraftCreated(true);
                     console.log('New draft created with ID:', response.data._id);
                 }
                 console.log('Draft saved successfully');
@@ -306,13 +345,9 @@ export const DraftEditor: React.FC = () => {
     };
 
     const handleBack = () => {
-        if (content.trim() && !id) {
-            if (window.confirm('You have unsaved changes. Are you sure you want to leave?')) {
-                navigate('/drafts');
-            }
-        } else {
-            navigate('/drafts');
-        }
+        // Check if there are unsaved changes (autosave will save automatically)
+        // We'll let the user know if autosave is pending
+        navigate('/drafts');
     };
 
     return (
@@ -340,6 +375,32 @@ export const DraftEditor: React.FC = () => {
                     </div>
                     
                     <div className="flex items-center gap-3">
+                        {/* Autosave Status Indicator */}
+                        {autosave.status === 'saving' && (
+                            <span className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 font-medium">
+                                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Autosaving...
+                            </span>
+                        )}
+                        {autosave.status === 'saved' && (
+                            <span className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400 font-medium">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                Autosaved
+                            </span>
+                        )}
+                        {autosave.status === 'error' && (
+                            <span className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400 font-medium">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                Autosave failed
+                            </span>
+                        )}
                         {saved && (
                             <span className="text-sm text-green-600 dark:text-green-400 font-medium">
                                 Saved!
@@ -426,15 +487,22 @@ export const DraftEditor: React.FC = () => {
                         />
                     </div>
 
-                    {/* Footer with Word Count */}
-                    <div className="px-6 py-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                    {/* Footer with Word Count and Autosave Status */}
+                    <div className="px-6 py-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                         <span className={`text-sm ${wordCountValid ? 'text-gray-500 dark:text-gray-400' : 'text-red-600 dark:text-red-400'}`}>
                             {wordCount} / {maxWords} words
                             {!wordCountValid && ' (limit exceeded)'}
                         </span>
-                        <span className="text-sm text-gray-400 dark:text-gray-500">
-                            Auto-save disabled. Click Save to save changes.
-                        </span>
+                        <div className="flex flex-col items-start sm:items-end gap-1">
+                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                                Autosave enabled. Changes are saved automatically.
+                            </span>
+                            {autosave.lastSaveTime && (
+                                <span className="text-xs text-gray-400 dark:text-gray-500">
+                                    Last saved: {formatLastSaveTime(autosave.lastSaveTime)}
+                                </span>
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -443,7 +511,8 @@ export const DraftEditor: React.FC = () => {
                     <h3 className="font-medium text-blue-900 dark:text-blue-100 mb-2">Tips:</h3>
                     <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
                         <li>• Maximum word count is {maxWords} words</li>
-                        <li>• Click the Save button to save your draft</li>
+                        <li>• Autosave saves your draft automatically 5 seconds after you stop typing</li>
+                        <li>• Click the Save button for immediate manual save</li>
                         <li>• You can edit your draft anytime from the Drafts page</li>
                         <li>• Use the Back button to return to the Drafts list</li>
                         {isEncrypted && <li>• This note is encrypted and can only be accessed with the password</li>}
