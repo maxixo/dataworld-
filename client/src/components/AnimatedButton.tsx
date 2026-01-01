@@ -30,10 +30,11 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
 
   return (
     <motion.button
+      drag={false}
       whileHover={{ y: -2 }}
       whileTap={{ scale: 0.98 }}
       className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
-      {...props}
+      {...(props as any)}
     >
       {children}
     </motion.button>

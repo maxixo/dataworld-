@@ -140,6 +140,11 @@ export const Signup: React.FC = () => {
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-5 w-full">
+                            {error && (
+                                <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
+                                    {error}
+                                </div>
+                            )}
 
                             <div className="space-y-4">
                                 <div>

@@ -6,7 +6,6 @@
  */
 
 const encoder = new TextEncoder();
-const decoder = new TextDecoder();
 const KEY_LENGTH = 256; // AES-256-GCM
 const PBKDF2_ITER = 100_000;
 

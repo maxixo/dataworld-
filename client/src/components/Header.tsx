@@ -16,6 +16,7 @@ export const Header: React.FC<HeaderProps> = ({ username, onLogout }) => {
     const navItems = [
         { name: 'Dashboard', path: '/app' },
         { name: 'Datasets', path: '/files' },
+        { name: 'Drafts', path: '/drafts' },
         { name: 'Settings', path: '/settings' }
     ];
 

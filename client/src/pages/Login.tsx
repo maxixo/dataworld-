@@ -5,45 +5,7 @@ import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '../config/firebase';
-import { useReduxAuth } from '../hooks/useReduxAuth'; // ADD THIS IMPORT
-
-type StrengthProps = { password: string };
-
-function PasswordStrength({ password }: StrengthProps) {
-    const lengthOK = password.length >= 8;
-    const upperOK = /[A-Z]/.test(password);
-    const numberOK = /[0-9]/.test(password);
-    const specialOK = /[^A-Za-z0-9]/.test(password);
-    const checks = [lengthOK, upperOK, numberOK, specialOK];
-    const score = checks.filter(Boolean).length;
-
-    const pct = Math.round((score / 4) * 100);
-    const barColor = score <= 1 ? 'bg-rose-500' : score === 2 ? 'bg-amber-400' : score === 3 ? 'bg-emerald-500' : 'bg-emerald-600';
-
-    const Item = ({ ok, label }: { ok: boolean; label: string }) => (
-        <div className="flex items-center gap-2 text-xs">
-            <span className={`material-symbols-outlined ${ok ? 'text-emerald-500' : 'text-slate-300'}`}>{ok ? 'check_circle' : 'radio_button_unchecked'}</span>
-            <span className={`${ok ? 'text-slate-700 dark:text-white' : 'text-slate-400'}`}>{label}</span>
-        </div>
-    );
-
-    return (
-        <div>
-            <div className="mb-2">
-                <div className="h-2 w-full rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
-                    <div className={`${barColor} h-full rounded-full transition-all`} style={{ width: `${pct}%` }} />
-                </div>
-                <div className="mt-1 text-xs text-slate-500">Strength: <span className="font-medium text-slate-700 dark:text-white">{pct}%</span></div>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-                <Item ok={lengthOK} label="8+ characters" />
-                <Item ok={upperOK} label="Uppercase letter" />
-                <Item ok={numberOK} label="Number" />
-                <Item ok={specialOK} label="Special character" />
-            </div>
-        </div>
-    );
-}
+import { useReduxAuth } from '../hooks/useReduxAuth';
 
 export const Login = () => {
     const [email, setEmail] = useState('');

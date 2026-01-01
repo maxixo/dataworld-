@@ -61,10 +61,6 @@ export const Files: React.FC = () => {
         }
     };
 
-    const handleViewChart = (id: string) => {
-        navigate(`/dataset/${id}`);
-    };
-
     const handleLogout = () => {
         logout();
         navigate('/login');

@@ -6,11 +6,10 @@ import { decryptToBlob, decryptFilename } from '../utils/fileEncryption';
 interface Props {
   id: string;
   label?: string | null;
-  mimeType?: string | null;
   onClose: () => void;
 }
 
-export const LockedFileViewer: React.FC<Props> = ({ id, label, mimeType, onClose }) => {
+export const LockedFileViewer: React.FC<Props> = ({ id, label, onClose }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

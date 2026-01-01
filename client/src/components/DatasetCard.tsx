@@ -13,6 +13,7 @@ interface DatasetCardProps {
     onDelete?: () => void;
     isEncrypted?: boolean;
     label?: string | null;
+    columns?: string[];
 }
 
 export const DatasetCard: React.FC<DatasetCardProps> = ({
@@ -23,7 +24,8 @@ export const DatasetCard: React.FC<DatasetCardProps> = ({
     data = [],
     onDelete,
     isEncrypted,
-    label
+    label,
+    columns = []
 }) => {
     const navigate = useNavigate();
     const [menuOpen, setMenuOpen] = useState(false);
@@ -47,6 +49,57 @@ export const DatasetCard: React.FC<DatasetCardProps> = ({
         e.stopPropagation();
         setMenuOpen(false);
         if (onDelete) onDelete();
+    };
+
+    const handleDownload = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setMenuOpen(false);
+        
+        if (isEncrypted) {
+            // For encrypted files, open LockedFileViewer for decryption + download
+            setShowLockedViewer(true);
+        } else {
+            // For non-encrypted files, download data directly
+            const fileExtension = name.split('.').pop()?.toLowerCase() || 'json';
+            let content: string;
+            let mimeType: string;
+            
+            if (fileExtension === 'csv') {
+                // Convert data to CSV
+                const headers = columns.join(',');
+                const rows = data.map(row => 
+                    columns.map(col => {
+                        const value = row[col];
+                        // Escape quotes and wrap in quotes if contains comma
+                        if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
+                            return `"${value.replace(/"/g, '""')}"`;
+                        }
+                        return value !== undefined && value !== null ? String(value) : '';
+                    }).join(',')
+                ).join('\n');
+                content = `${headers}\n${rows}`;
+                mimeType = 'text/csv';
+            } else if (fileExtension === 'json') {
+                // Convert data to JSON
+                content = JSON.stringify(data, null, 2);
+                mimeType = 'application/json';
+            } else {
+                // Default to JSON for other formats
+                content = JSON.stringify(data, null, 2);
+                mimeType = 'application/json';
+            }
+            
+            // Create download link and trigger download
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = name;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
     };
 
     // File type icon component
@@ -122,19 +175,17 @@ export const DatasetCard: React.FC<DatasetCardProps> = ({
                                 View
                             </button>
                             <button
+                                onClick={handleDownload}
+                                className="w-full text-left px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            >
+                                {isEncrypted ? 'Decrypt & Download' : 'Download'}
+                            </button>
+                            <button
                                 onClick={handleDelete}
                                 className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
                             >
                                 Delete
                             </button>
-                            {isEncrypted && (
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); setShowLockedViewer(true); setMenuOpen(false); }}
-                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                >
-                                    Decrypt & Download
-                                </button>
-                            )}
                         </div>
                     )}
                 </div>

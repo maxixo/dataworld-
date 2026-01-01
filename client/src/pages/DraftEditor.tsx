@@ -44,10 +44,6 @@ export const DraftEditor: React.FC = () => {
     // Use ref to store password for re-encryption (persists across renders)
     const decryptionPasswordRef = useRef<string | null>(null);
 
-    // Encrypted data storage (keeps original encrypted data available)
-    const [encryptedTitle, setEncryptedTitle] = useState<string>('');
-    const [encryptedContent, setEncryptedContent] = useState<string>('');
-
     // Encrypted data from server
     const [serverDraft, setServerDraft] = useState<DraftData | null>(null);
 
@@ -82,9 +78,6 @@ export const DraftEditor: React.FC = () => {
             setIsEncrypted(draft.isEncrypted || false);
 
             if (draft.isEncrypted) {
-                // Store encrypted data
-                setEncryptedTitle(draft.title);
-                setEncryptedContent(draft.content);
                 console.log('Encrypted title:', draft.title);
                 console.log('Encrypted content:', draft.content);
                 
