@@ -17,7 +17,26 @@ const corsOptions = {
 };
 
 // CORS middleware
-app.use(cors(corsOptions));
+const allowedOrigins = [
+  'http://localhost:5173', // Local development
+  'https://dataworld-xx-git-main-maxixos-projects.vercel.app', // Production
+  // Add your main Vercel domain when you have it
+  'https://your-main-domain.vercel.app'
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or Postman)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true // If you're using cookies/authentication
+}))
 
 // Body parsing middleware
 app.use(express.json({ limit: '50mb' }));
