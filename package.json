@@ -2,11 +2,11 @@
   "name": "dataworld-backend",
   "version": "1.0.0",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/server.js",
+    "build": "cd server && npm run build",
+    "start": "node server/dist/index.js",
     "dev": "nodemon src/server.ts"
   },
   "engines": {
-    "node": "18.x"
+    "node": "20.x"
   }
 }
