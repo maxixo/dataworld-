@@ -16,9 +16,11 @@ if (isProduction) {
 }
 
 app.use(cors({
-  
-  origin: ["https://dataworld-client-fx4l4dktk-maxixos-projects.vercel.app"], // add your custom domain too if you have one
-  credentials: true, // only needed if using cookies/sessions
+  origin: [
+    "https://dataworld-xx.vercel.app",
+    "https://dataworld-client-fx4l4dktk-maxixos-projects.vercel.app"
+  ],
+  credentials: true,
 }));
 
 
