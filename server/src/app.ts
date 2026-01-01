@@ -8,14 +8,17 @@ import { errorHandler } from './middleware/error';
 
 dotenv.config();
 
+const isProduction = process.env.NODE_ENV === 'production';
 const app = express();
 
-
-const allowedOrigins = process.env.FRONTEND_URL?.split(',') || ['http://localhost:5173'];
+if (isProduction) {
+  app.set('trust proxy', 1);
+}
 
 app.use(cors({
-  origin: allowedOrigins,
-  credentials: true
+  
+  origin: ["https://dataworld-client-fx4l4dktk-maxixos-projects.vercel.app"], // add your custom domain too if you have one
+  credentials: true, // only needed if using cookies/sessions
 }));
 
 

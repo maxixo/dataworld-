@@ -4,6 +4,17 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { validationResult } from 'express-validator';
 
+const isProduction = process.env.NODE_ENV === 'production';
+
+const setAuthCookie = (res: Response, token: string, maxAgeMs: number) => {
+    res.cookie('authToken', token, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax',
+        maxAge: maxAgeMs
+    });
+};
+
 // Initialize Firebase Admin if credentials are provided
 
 /**
@@ -56,6 +67,7 @@ export const signup = async (req: Request, res: Response) => {
             process.env.JWT_SECRET!,
             { expiresIn: '1h' }
         );
+        setAuthCookie(res, token, 60 * 60 * 1000);
         res.json({ token, user: { id: user.id, username: user.username, email: user.email } });
 
     } catch (err) {
@@ -143,6 +155,7 @@ export const googleAuth = async (req: Request, res: Response) => {
             { expiresIn: '7d' } // Extended for better UX
         );
 
+        setAuthCookie(res, token, 7 * 24 * 60 * 60 * 1000);
         res.json({
             token,
             user: {
@@ -210,6 +223,7 @@ export const login = async (req: Request, res: Response) => {
             process.env.JWT_SECRET!,
             { expiresIn: '1h' }
         );
+        setAuthCookie(res, token, 60 * 60 * 1000);
         res.json({ token, user: { id: user.id, username: user.username, email: user.email } });
     } catch (err) {
         console.error(err);
