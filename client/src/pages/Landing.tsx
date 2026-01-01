@@ -59,9 +59,9 @@ export const Landing: React.FC = () => {
               )}
             </button>
             <Link className="hidden text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:text-primary sm:block transition-colors" to="/login">Log in</Link>
-            <a className="inline-flex h-9 items-center justify-center rounded-lg bg-slate-900 dark:bg-slate-700 px-4 text-sm font-semibold text-white shadow-md hover:bg-slate-800 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-surface-dark transition-all hover:-translate-y-0.5" href="#">
+            <Link className="inline-flex h-9 items-center justify-center rounded-lg bg-slate-900 dark:bg-slate-700 px-4 text-sm font-semibold text-white shadow-md hover:bg-slate-800 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-surface-dark transition-all hover:-translate-y-0.5" to="/signup">
               Get Started
-            </a>
+            </Link>
           </div>
         </div>
       </nav>
@@ -104,13 +104,13 @@ export const Landing: React.FC = () => {
               transition={{ duration: 0.8, delay: 0.4 }}
               className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
             >
-              <a className="inline-flex h-12 w-full sm:w-auto items-center justify-center rounded-lg bg-primary px-8 text-base font-semibold text-white shadow-lg shadow-primary/25 hover:bg-primary-hover hover:shadow-primary/40 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-surface-dark transition-all duration-200 hover:-translate-y-1" href="#">
+              <Link className="inline-flex h-12 w-full sm:w-auto items-center justify-center rounded-lg bg-primary px-8 text-base font-semibold text-white shadow-lg shadow-primary/25 hover:bg-primary-hover hover:shadow-primary/40 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-surface-dark transition-all duration-200 hover:-translate-y-1" to="/signup">
                 Start Building for Free
-              </a>
-              <a className="inline-flex h-12 w-full sm:w-auto items-center justify-center rounded-lg border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark px-8 text-base font-semibold text-text-main-light dark:text-text-main-dark shadow-sm hover:bg-background-light dark:hover:bg-gray-800 hover:border-border-dark dark:hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-surface-dark transition-all duration-200" href="#">
+              </Link>
+              <Link className="inline-flex h-12 w-full sm:w-auto items-center justify-center rounded-lg border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark px-8 text-base font-semibold text-text-main-light dark:text-text-main-dark shadow-sm hover:bg-background-light dark:hover:bg-gray-800 hover:border-border-dark dark:hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-surface-dark transition-all duration-200" to="/signup">
                 <span className="material-symbols-outlined mr-2 text-[20px]">play_circle</span>
                 View Demo
-              </a>
+              </Link>
             </motion.div>
 
             <AnimatedSection className="relative mx-auto max-w-[1100px] perspective-1000">
