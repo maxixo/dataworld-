@@ -11,7 +11,7 @@ dotenv.config();
 const app = express();
 
 const corsOptions = {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: process.env.CLIENT_URL || 'https://dataworld-xx.vercel.app/',
     credentials: true,
     optionsSuccessStatus: 200
 };
