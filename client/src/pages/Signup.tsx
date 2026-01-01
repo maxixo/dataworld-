@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
@@ -28,7 +27,7 @@ function PasswordStrength({ password }: StrengthProps) {
                 </div>
                 <div className="mt-1 text-xs text-slate-500">Strength: <span className="font-medium text-slate-700 dark:text-white">{pct}%</span></div>
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <Item ok={lengthOK} label="8+ characters" />
                 <Item ok={upperOK} label="Uppercase" />
                 <Item ok={numberOK} label="Number" />
@@ -46,7 +45,6 @@ export const Signup: React.FC = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [terms, setTerms] = useState(false);
     const [error, setError] = useState('');
-    const { login } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -61,9 +59,8 @@ export const Signup: React.FC = () => {
             return;
         }
         try {
-            const res = await axios.post(`${API_BASE_URL}/auth/signup`, { username: name, email, password });
-            login(res.data.token, res.data.user);
-            navigate('/app');
+            await axios.post(`${API_BASE_URL}/auth/signup`, { username: name, email, password });
+            navigate('/login');
         } catch (err: any) {
             setError(err.response?.data?.message || 'Signup failed');
         }
@@ -116,7 +113,7 @@ export const Signup: React.FC = () => {
                         {/* Back Button */}
                         <button
                             onClick={() => navigate('/')}
-                            className="group flex items-center gap-2 text-text-muted-light dark:text-text-muted-dark hover:text-primary dark:hover:text-primary transition-colors mb-4"
+                            className="group flex min-h-[44px] items-center gap-2 rounded-lg px-2 text-text-muted-light dark:text-text-muted-dark hover:text-primary dark:hover:text-primary transition-colors mb-4"
                         >
                             <span className="material-symbols-outlined text-[20px] group-hover:-translate-x-1 transition-transform duration-200">arrow_back</span>
                             <span className="text-sm font-medium">Back</span>
@@ -135,7 +132,7 @@ export const Signup: React.FC = () => {
                         </div>
 
                         <div className="text-center lg:text-left space-y-2">
-                            <h1 className="text-3xl font-bold tracking-tight text-text-main-light dark:text-text-main-dark">Create account</h1>
+                            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-text-main-light dark:text-text-main-dark">Create account</h1>
                             <p className="text-text-muted-light dark:text-text-muted-dark">Already have an account? <Link to="/login" className="font-semibold text-primary hover:text-primary-hover">Log in</Link></p>
                         </div>
 
@@ -153,7 +150,7 @@ export const Signup: React.FC = () => {
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted-light dark:text-text-muted-dark">
                                             <span className="material-symbols-outlined text-[20px]">person</span>
                                         </div>
-                                        <input id="name" name="name" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="John Doe" className="block w-full pl-10 pr-3 py-3 rounded-lg border-border-light dark:border-border-dark bg-white dark:bg-surface-dark text-text-main-light dark:text-text-main-dark placeholder:text-text-muted-light/60 dark:placeholder:text-text-muted-dark/50 focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm shadow-sm transition-shadow" required />
+                                        <input id="name" name="name" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="John Doe" className="block w-full min-h-[44px] pl-10 pr-3 py-3 rounded-lg border-border-light dark:border-border-dark bg-white dark:bg-surface-dark text-text-main-light dark:text-text-main-dark placeholder:text-text-muted-light/60 dark:placeholder:text-text-muted-dark/50 focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm shadow-sm transition-shadow" required />
                                     </div>
                                 </div>
                                 <div>
@@ -162,7 +159,7 @@ export const Signup: React.FC = () => {
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted-light dark:text-text-muted-dark">
                                             <span className="material-symbols-outlined text-[20px]">mail</span>
                                         </div>
-                                        <input id="email" name="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@company.com" className="block w-full pl-10 pr-3 py-3 rounded-lg border-border-light dark:border-border-dark bg-white dark:bg-surface-dark text-text-main-light dark:text-text-main-dark placeholder:text-text-muted-light/60 dark:placeholder:text-text-muted-dark/50 focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm shadow-sm transition-shadow" required />
+                                        <input id="email" name="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@company.com" className="block w-full min-h-[44px] pl-10 pr-3 py-3 rounded-lg border-border-light dark:border-border-dark bg-white dark:bg-surface-dark text-text-main-light dark:text-text-main-dark placeholder:text-text-muted-light/60 dark:placeholder:text-text-muted-dark/50 focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm shadow-sm transition-shadow" required />
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 col-span-1 md:col-span-2">
@@ -172,8 +169,8 @@ export const Signup: React.FC = () => {
                                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted-light dark:text-text-muted-dark">
                                                 <span className="material-symbols-outlined text-[20px]">lock</span>
                                             </div>
-                                            <input id="password" name="password" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="block w-full pl-10 pr-10 py-3 rounded-lg border-border-light dark:border-border-dark bg-white dark:bg-surface-dark text-text-main-light dark:text-text-main-dark placeholder:text-text-muted-light/60 dark:placeholder:text-text-muted-dark/50 focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm shadow-sm transition-shadow" required />
-                                            <button type="button" onClick={() => setShowPassword(s => !s)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-muted-light dark:text-text-muted-dark hover:text-text-main-light dark:hover:text-text-main-dark">
+                                            <input id="password" name="password" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="block w-full min-h-[44px] pl-10 pr-10 py-3 rounded-lg border-border-light dark:border-border-dark bg-white dark:bg-surface-dark text-text-main-light dark:text-text-main-dark placeholder:text-text-muted-light/60 dark:placeholder:text-text-muted-dark/50 focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm shadow-sm transition-shadow" required />
+                                            <button type="button" onClick={() => setShowPassword(s => !s)} className="absolute inset-y-0 right-0 pr-3 flex min-h-[44px] min-w-[44px] items-center justify-center text-text-muted-light dark:text-text-muted-dark hover:text-text-main-light dark:hover:text-text-main-dark">
                                                 <span className="material-symbols-outlined text-[20px]">{showPassword ? 'visibility' : 'visibility_off'}</span>
                                             </button>
                                         </div>
@@ -184,7 +181,7 @@ export const Signup: React.FC = () => {
                                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted-light dark:text-text-muted-dark">
                                                 <span className="material-symbols-outlined text-[20px]">lock_reset</span>
                                             </div>
-                                            <input id="confirm-password" name="confirm-password" type={showPassword ? 'text' : 'password'} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" className="block w-full pl-10 pr-3 py-3 rounded-lg border-border-light dark:border-border-dark bg-white dark:bg-surface-dark text-text-main-light dark:text-text-main-dark placeholder:text-text-muted-light/60 dark:placeholder:text-text-muted-dark/50 focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm shadow-sm transition-shadow" required />
+                                            <input id="confirm-password" name="confirm-password" type={showPassword ? 'text' : 'password'} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" className="block w-full min-h-[44px] pl-10 pr-3 py-3 rounded-lg border-border-light dark:border-border-dark bg-white dark:bg-surface-dark text-text-main-light dark:text-text-main-dark placeholder:text-text-muted-light/60 dark:placeholder:text-text-muted-dark/50 focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm shadow-sm transition-shadow" required />
                                         </div>
                                     </div>
                                 </div>
@@ -196,7 +193,7 @@ export const Signup: React.FC = () => {
 
                             <div className="flex items-start">
                                 <div className="flex h-5 items-center">
-                                    <input id="terms" name="terms" type="checkbox" checked={terms} onChange={(e) => setTerms(e.target.checked)} className="h-4 w-4 rounded border-border-light dark:border-border-dark text-primary focus:ring-primary dark:bg-surface-dark" />
+                                    <input id="terms" name="terms" type="checkbox" checked={terms} onChange={(e) => setTerms(e.target.checked)} className="h-5 w-5 rounded border-border-light dark:border-border-dark text-primary focus:ring-primary dark:bg-surface-dark" />
                                 </div>
                                 <div className="ml-3 text-sm">
                                     <label htmlFor="terms" className="text-text-muted-light dark:text-text-muted-dark">I agree to the <a className="font-medium text-primary hover:underline" href="#">Terms of Service</a> and <a className="font-medium text-primary hover:underline" href="#">Privacy Policy</a>.</label>

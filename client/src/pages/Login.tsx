@@ -102,7 +102,7 @@ export const Login = () => {
                         {/* Back Button */}
                         <button
                             onClick={() => navigate('/')}
-                            className="group flex items-center gap-2 text-text-muted-light dark:text-text-muted-dark hover:text-primary dark:hover:text-primary transition-colors mb-4"
+                            className="group flex min-h-[44px] items-center gap-2 rounded-lg px-2 text-text-muted-light dark:text-text-muted-dark hover:text-primary dark:hover:text-primary transition-colors mb-4"
                         >
                             <span className="material-symbols-outlined text-[20px] group-hover:-translate-x-1 transition-transform duration-200">arrow_back</span>
                             <span className="text-sm font-medium">Back</span>
@@ -121,11 +121,11 @@ export const Login = () => {
                         </div>
 
                         <div className="text-center lg:text-left space-y-2">
-                            <h1 className="text-3xl font-bold tracking-tight text-text-main-light dark:text-text-main-dark">Welcome back</h1>
+                            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-text-main-light dark:text-text-main-dark">Welcome back</h1>
                             <p className="text-text-muted-light dark:text-text-muted-dark">Don't have an account? <Link to="/signup" className="font-semibold text-primary hover:text-primary-hover">Sign up</Link></p>
                         </div>
 
-                        <div className="rounded-2xl border border-white/50 bg-surface-light/80 p-8 shadow-xl backdrop-blur-xl dark:border-[#2b263b] dark:bg-surface-dark/80">
+                        <div className="rounded-2xl border border-white/50 bg-surface-light/80 p-6 sm:p-8 shadow-xl backdrop-blur-xl dark:border-[#2b263b] dark:bg-surface-dark/80">
                             <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
                                 {(error || reduxError) && (
                                     <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
@@ -147,7 +147,7 @@ export const Login = () => {
                                                 value={email} 
                                                 onChange={(e) => setEmail(e.target.value)} 
                                                 placeholder="name@company.com" 
-                                                className="block w-full pl-10 pr-3 py-3 rounded-lg border-border-light dark:border-border-dark bg-white dark:bg-surface-dark text-text-main-light dark:text-text-main-dark placeholder:text-text-muted-light/60 dark:placeholder:text-text-muted-dark/50 focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm shadow-sm transition-shadow" 
+                                                className="block w-full min-h-[44px] pl-10 pr-3 py-3 rounded-lg border-border-light dark:border-border-dark bg-white dark:bg-surface-dark text-text-main-light dark:text-text-main-dark placeholder:text-text-muted-light/60 dark:placeholder:text-text-muted-dark/50 focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm shadow-sm transition-shadow" 
                                                 required 
                                                 disabled={reduxLoading}
                                             />
@@ -169,14 +169,14 @@ export const Login = () => {
                                                 value={password} 
                                                 onChange={(e) => setPassword(e.target.value)} 
                                                 placeholder="••••••••" 
-                                                className="block w-full pl-10 pr-10 py-3 rounded-lg border-border-light dark:border-border-dark bg-white dark:bg-surface-dark text-text-main-light dark:text-text-main-dark placeholder:text-text-muted-light/60 dark:placeholder:text-text-muted-dark/50 focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm shadow-sm transition-shadow" 
+                                                className="block w-full min-h-[44px] pl-10 pr-10 py-3 rounded-lg border-border-light dark:border-border-dark bg-white dark:bg-surface-dark text-text-main-light dark:text-text-main-dark placeholder:text-text-muted-light/60 dark:placeholder:text-text-muted-dark/50 focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm shadow-sm transition-shadow" 
                                                 required 
                                                 disabled={reduxLoading}
                                             />
                                             <button 
                                                 type="button" 
                                                 onClick={() => setShowPassword(s => !s)} 
-                                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-muted-light dark:text-text-muted-dark hover:text-text-main-light dark:hover:text-text-main-dark"
+                                                className="absolute inset-y-0 right-0 pr-3 flex min-h-[44px] min-w-[44px] items-center justify-center text-text-muted-light dark:text-text-muted-dark hover:text-text-main-light dark:hover:text-text-main-dark"
                                                 disabled={reduxLoading}
                                             >
                                                 <span className="material-symbols-outlined text-[20px]">{showPassword ? 'visibility' : 'visibility_off'}</span>
@@ -187,7 +187,7 @@ export const Login = () => {
 
                                 <button 
                                     type="submit" 
-                                    className="group relative flex w-full justify-center rounded-lg bg-primary px-4 py-3 text-sm font-bold text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg dark:ring-offset-surface-dark disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="group relative flex w-full min-h-[44px] justify-center rounded-lg bg-primary px-4 py-3 text-sm font-bold text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg dark:ring-offset-surface-dark disabled:opacity-50 disabled:cursor-not-allowed"
                                     disabled={reduxLoading}
                                 >
                                     <span className="absolute inset-y-0 left-0 flex items-center pl-3">
@@ -208,7 +208,7 @@ export const Login = () => {
                                     type="button" 
                                     onClick={handleGoogleSignIn}
                                     disabled={reduxLoading}
-                                    className="flex items-center justify-center gap-2 px-4 py-2.5 border border-border-light dark:border-border-dark rounded-lg bg-surface-light dark:bg-surface-dark text-text-main-light dark:text-text-main-dark hover:bg-background-light dark:hover:bg-background-dark/50 transition-colors w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="flex min-h-[44px] items-center justify-center gap-2 px-4 py-2.5 border border-border-light dark:border-border-dark rounded-lg bg-surface-light dark:bg-surface-dark text-text-main-light dark:text-text-main-dark hover:bg-background-light dark:hover:bg-background-dark/50 transition-colors w-full disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {reduxLoading ? (
                                         <span className="material-symbols-outlined animate-spin">hourglass_empty</span>
@@ -223,7 +223,7 @@ export const Login = () => {
                         </div>
 
                         <div className="text-center text-xs text-text-muted-light dark:text-text-muted-dark">
-                            <div className="flex justify-center gap-4">
+                            <div className="flex flex-wrap justify-center gap-3">
                                 <a className="hover:text-text-main-light dark:hover:text-text-main-dark" href="#">Privacy Policy</a>
                                 <a className="hover:text-text-main-light dark:hover:text-text-main-dark" href="#">Terms of Service</a>
                             </div>

@@ -106,17 +106,17 @@ export const Drafts: React.FC = () => {
     };
 
     const tabs = [
-        { id: 'drafts' as TabType, label: 'Drafts', icon: (
+        { id: 'drafts' as TabType, label: 'Drafts', mobileLabel: 'Drafts', icon: (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
         )},
-        { id: 'locked-notes' as TabType, label: 'Encrypted Notes', icon: (
+        { id: 'locked-notes' as TabType, label: 'Encrypted Notes', mobileLabel: 'Locked', icon: (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
         )},
-        { id: 'trash' as TabType, label: 'Trash', icon: (
+        { id: 'trash' as TabType, label: 'Trash', mobileLabel: 'Trash', icon: (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
@@ -126,8 +126,9 @@ export const Drafts: React.FC = () => {
     const renderDraftsList = () => {
         if (loading) {
             return (
-                <div className="flex justify-center items-center py-12">
+                <div className="flex flex-col justify-center items-center py-12 text-gray-600 dark:text-gray-400">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                    <span className="mt-3 text-sm">Loading drafts...</span>
                 </div>
             );
         }
@@ -153,9 +154,9 @@ export const Drafts: React.FC = () => {
             };
             
             return (
-                <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
                     <svg
-                        className="mx-auto h-16 w-16 text-gray-400"
+                        className="mx-auto h-12 w-12 text-gray-400"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -167,7 +168,7 @@ export const Drafts: React.FC = () => {
                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                         />
                     </svg>
-                    <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">
+                    <h3 className="mt-4 text-base font-medium text-gray-900 dark:text-gray-100">
                         {messages[activeTab]}
                     </h3>
                     <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
@@ -178,16 +179,24 @@ export const Drafts: React.FC = () => {
         }
 
         return (
-            <div className="space-y-3">
+            <div className="space-y-4">
                 {drafts.map((draft) => (
                     <div
                         key={draft._id}
-                        className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-shadow cursor-pointer group"
+                        className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-5 hover:shadow-md transition-all cursor-pointer group active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                         onClick={() => handleDraftClick(draft._id)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                handleDraftClick(draft._id);
+                            }
+                        }}
                     >
-                        <div className="flex justify-between items-start">
+                        <div className="flex justify-between items-start gap-4">
                             <div className="flex-1 min-w-0">
-                                <h3 className="font-medium text-gray-900 dark:text-white truncate">
+                                <h3 className="text-base font-medium text-gray-900 dark:text-white truncate">
                                     {draft.isEncrypted && draft.label ? draft.label : draft.title}
                                 </h3>
                                 {draft.isEncrypted && draft.label && (
@@ -196,23 +205,24 @@ export const Drafts: React.FC = () => {
                                     </p>
                                 )}
                                 {!draft.isEncrypted && (
-                                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
+                                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed">
                                         {draft.content.substring(0, 100)}{draft.content.length > 100 && '...'}
                                     </p>
                                 )}
-                                <p className="mt-2 text-xs text-gray-400 dark:text-gray-500">
+                                <p className="mt-3 text-xs text-gray-400 dark:text-gray-500">
                                     {new Date(draft.updatedAt).toLocaleDateString()}
                                 </p>
                             </div>
-                            <div className="flex items-center gap-2 ml-4">
+                            <div className="flex items-center gap-2">
                                 {activeTab === 'trash' ? (
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             handleRestoreDraft(draft._id);
                                         }}
-                                        className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
+                                        className="inline-flex items-center justify-center h-11 w-11 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
                                         title="Restore"
+                                        aria-label="Restore draft"
                                     >
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -224,8 +234,9 @@ export const Drafts: React.FC = () => {
                                             e.stopPropagation();
                                             handleDeleteDraft(draft._id);
                                         }}
-                                        className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                        className="inline-flex items-center justify-center h-11 w-11 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                                         title="Delete"
+                                        aria-label="Delete draft"
                                     >
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -249,10 +260,10 @@ export const Drafts: React.FC = () => {
             />
 
             {/* Main Content */}
-            <main className="max-w-[1400px] mx-auto px-6 py-8">
+            <main className="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 lg:py-8">
                 {/* Page Title */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                <div className="mb-6 sm:mb-8">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
                         Drafts
                     </h1>
                     <p className="text-gray-600 dark:text-gray-400">
@@ -260,17 +271,41 @@ export const Drafts: React.FC = () => {
                     </p>
                 </div>
 
+                {/* Mobile Tabs */}
+                <div className="md:hidden mb-4">
+                    <div className="flex items-center gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+                        {tabs.map((tab) => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`flex items-center gap-2 min-h-[44px] px-3 py-2 rounded-full border transition-colors whitespace-nowrap ${
+                                    activeTab === tab.id
+                                        ? 'bg-blue-600 border-blue-600 text-white'
+                                        : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                                }`}
+                                aria-pressed={activeTab === tab.id}
+                            >
+                                {tab.icon}
+                                <span className="text-sm font-medium">
+                                    <span className="sm:hidden">{tab.mobileLabel}</span>
+                                    <span className="hidden sm:inline">{tab.label}</span>
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
                 {/* Layout: Sidebar + Content */}
-                <div className="flex gap-8">
+                <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
                     {/* Sidebar */}
-                    <aside className="w-64 flex-shrink-0">
-                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sticky top-24">
+                    <aside className="hidden md:block md:w-20 lg:w-64 flex-shrink-0">
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 lg:p-4 lg:sticky lg:top-24">
                             {/* User Profile */}
-                            <div className="flex flex-col items-center pb-6 border-b border-gray-200 dark:border-gray-700 mb-6">
-                                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mb-3">
+                            <div className="flex flex-col items-center pb-4 lg:pb-6 border-b border-gray-200 dark:border-gray-700 mb-4 lg:mb-6">
+                                <div className="w-12 h-12 lg:w-16 lg:h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white text-xl lg:text-2xl font-bold mb-2 lg:mb-3">
                                     {user?.username.charAt(0).toUpperCase() || 'U'}
                                 </div>
-                                <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+                                <h3 className="hidden lg:block text-base font-semibold text-gray-900 dark:text-white">
                                     {user?.username || 'User'}
                                 </h3>
                             </div>
@@ -278,12 +313,13 @@ export const Drafts: React.FC = () => {
                             {/* New Button */}
                             <button
                                 onClick={handleCreateNew}
-                                className="w-full mb-4 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
+                                className="w-full min-h-[48px] mb-4 flex items-center justify-center gap-2 px-3 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
+                                aria-label="Create new draft"
                             >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                 </svg>
-                                New
+                                <span className="hidden lg:inline">New</span>
                             </button>
 
                             {/* Navigation */}
@@ -292,14 +328,15 @@ export const Drafts: React.FC = () => {
                                     <button
                                         key={tab.id}
                                         onClick={() => setActiveTab(tab.id)}
-                                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-left ${
+                                        className={`w-full min-h-[48px] flex items-center gap-3 px-3 lg:px-4 py-3 rounded-lg transition-colors text-left ${
                                             activeTab === tab.id
                                                 ? 'bg-blue-600 text-white'
                                                 : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                                         }`}
+                                        aria-pressed={activeTab === tab.id}
                                     >
                                         {tab.icon}
-                                        <span className="font-medium">{tab.label}</span>
+                                        <span className="hidden lg:inline font-medium">{tab.label}</span>
                                     </button>
                                 ))}
                             </nav>
@@ -307,11 +344,22 @@ export const Drafts: React.FC = () => {
                     </aside>
 
                     {/* Main Content Area */}
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                         {renderDraftsList()}
                     </div>
                 </div>
             </main>
+
+            {/* Mobile Floating Action Button */}
+            <button
+                onClick={handleCreateNew}
+                className="md:hidden fixed bottom-6 right-6 h-14 w-14 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all flex items-center justify-center"
+                aria-label="Create new draft"
+            >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+            </button>
         </div>
     );
 };

@@ -15,11 +15,30 @@ if (isProduction) {
   app.set('trust proxy', 1);
 }
 
+const allowedOrigins = [
+  'https://dataworld-xx.vercel.app',
+  'https://dataworld-client-fx4l4dktk-maxixos-projects.vercel.app',
+];
+
+if (!isProduction) {
+  allowedOrigins.push(
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:5174'
+  );
+}
+
 app.use(cors({
-  origin: [
-    "https://dataworld-xx.vercel.app",
-    "https://dataworld-client-fx4l4dktk-maxixos-projects.vercel.app"
-  ],
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
 }));
 

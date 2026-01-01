@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { motion, useInView } from 'framer-motion';
-import { useRef } from 'react';
 
 // Animated section wrapper component
 const AnimatedSection: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => {
@@ -24,6 +23,26 @@ const AnimatedSection: React.FC<{ children: React.ReactNode; className?: string 
 
 export const Landing: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [mobileMenuOpen]);
   
   return (
     <div className="font-body bg-background-light dark:bg-background-dark text-text-main-light dark:text-text-main-dark transition-colors duration-200">
@@ -42,10 +61,27 @@ export const Landing: React.FC = () => {
               <a className="text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:text-primary transition-colors" href="#pricing">Pricing</a>
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <button
+              onClick={() => setMobileMenuOpen((open) => !open)}
+              className="md:hidden inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg text-text-muted-light dark:text-text-muted-dark hover:text-text-main-light dark:hover:text-text-main-dark hover:bg-border-light dark:hover:bg-border-dark transition-colors"
+              aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="landing-mobile-menu"
+            >
+              {mobileMenuOpen ? (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
             <button 
               onClick={toggleTheme}
-              className="p-2 text-text-muted-light dark:text-text-muted-dark hover:text-text-main-light dark:hover:text-text-main-dark hover:bg-border-light dark:hover:bg-border-dark rounded-lg transition-colors"
+              className="inline-flex items-center justify-center min-w-[44px] min-h-[44px] text-text-muted-light dark:text-text-muted-dark hover:text-text-main-light dark:hover:text-text-main-dark hover:bg-border-light dark:hover:bg-border-dark rounded-lg transition-colors"
               aria-label="Toggle theme"
             >
               {theme === 'dark' ? (
@@ -59,9 +95,66 @@ export const Landing: React.FC = () => {
               )}
             </button>
             <Link className="hidden text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:text-primary sm:block transition-colors" to="/login">Log in</Link>
-            <Link className="inline-flex h-9 items-center justify-center rounded-lg bg-slate-900 dark:bg-slate-700 px-4 text-sm font-semibold text-white shadow-md hover:bg-slate-800 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-surface-dark transition-all hover:-translate-y-0.5" to="/signup">
+            <Link className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-slate-900 dark:bg-slate-700 px-4 text-sm font-semibold text-white shadow-md hover:bg-slate-800 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-surface-dark transition-all hover:-translate-y-0.5" to="/signup">
               Get Started
             </Link>
+          </div>
+        </div>
+
+        <div
+          id="landing-mobile-menu"
+          className={`fixed inset-0 z-40 md:hidden ${mobileMenuOpen ? '' : 'pointer-events-none'}`}
+          aria-hidden={!mobileMenuOpen}
+        >
+          <div
+            className={`absolute inset-0 bg-black/30 backdrop-blur-sm transition-opacity ${mobileMenuOpen ? 'opacity-100' : 'opacity-0'}`}
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          <div
+            className={`absolute top-16 left-4 right-4 rounded-2xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark shadow-xl transition-all ${mobileMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0'}`}
+          >
+            <div className="p-4 space-y-2">
+              <a
+                className="flex items-center justify-between min-h-[48px] rounded-lg px-4 text-sm font-medium text-text-main-light dark:text-text-main-dark hover:bg-background-light dark:hover:bg-gray-800 transition-colors"
+                href="#features"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Features
+                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+              </a>
+              <a
+                className="flex items-center justify-between min-h-[48px] rounded-lg px-4 text-sm font-medium text-text-main-light dark:text-text-main-dark hover:bg-background-light dark:hover:bg-gray-800 transition-colors"
+                href="#solutions"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Solutions
+                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+              </a>
+              <a
+                className="flex items-center justify-between min-h-[48px] rounded-lg px-4 text-sm font-medium text-text-main-light dark:text-text-main-dark hover:bg-background-light dark:hover:bg-gray-800 transition-colors"
+                href="#pricing"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Pricing
+                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+              </a>
+            </div>
+            <div className="border-t border-border-light dark:border-border-dark p-4 flex flex-col gap-3">
+              <Link
+                className="inline-flex min-h-[44px] items-center justify-center rounded-lg border border-border-light dark:border-border-dark px-4 text-sm font-semibold text-text-main-light dark:text-text-main-dark hover:bg-background-light dark:hover:bg-gray-800 transition-colors"
+                to="/login"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Log in
+              </Link>
+              <Link
+                className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-slate-900 dark:bg-slate-700 px-4 text-sm font-semibold text-white shadow-md hover:bg-slate-800 dark:hover:bg-slate-600 transition-all"
+                to="/signup"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Get Started
+              </Link>
+            </div>
           </div>
         </div>
       </nav>
@@ -73,10 +166,10 @@ export const Landing: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.1 }}
-              className="flex items-center justify-center gap-2 mb-6"
+              className="flex flex-wrap items-center justify-center gap-2 mb-6"
             >
               <span className="inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-950/50 px-2 py-1 text-xs font-medium text-blue-700 dark:text-blue-300 ring-1 ring-inset ring-blue-700/10 dark:ring-blue-500/20">New Feature</span>
-              <span className="text-sm font-medium text-text-muted-light dark:text-text-muted-dark">AI-powered predictive modeling is here ›</span>
+              <span className="text-xs sm:text-sm font-medium text-text-muted-light dark:text-text-muted-dark">AI-powered predictive modeling is here ›</span>
             </motion.div>
 
             <motion.h1
@@ -93,7 +186,7 @@ export const Landing: React.FC = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
-              className="mx-auto max-w-2xl text-lg text-text-muted-light dark:text-text-muted-dark mb-10 leading-relaxed"
+              className="mx-auto max-w-2xl text-base sm:text-lg text-text-muted-light dark:text-text-muted-dark mb-10 leading-relaxed"
             >
               DataWorld lets you upload CSV datasets, create beautiful interactive charts, and export them instantly in PNG, PDF, CSV, or JSON formats. No complex setup required.
             </motion.p>
@@ -126,7 +219,7 @@ export const Landing: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex h-[550px] bg-background-light dark:bg-gray-800">
+                <div className="flex h-[420px] sm:h-[520px] lg:h-[550px] bg-background-light dark:bg-gray-800">
                   <div className="hidden md:flex w-64 flex-col border-r border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-4">
                     <div className="space-y-1">
                       <div className="flex items-center gap-3 rounded-lg bg-blue-50 dark:bg-primary/20 px-3 py-2 text-primary font-semibold text-sm">
@@ -161,18 +254,18 @@ export const Landing: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex-1 p-6 lg:p-8 overflow-hidden">
-                    <div className="flex items-center justify-between mb-8">
+                  <div className="flex-1 p-4 sm:p-6 lg:p-8 overflow-hidden">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
                       <div>
                         <h2 className="text-2xl font-bold text-text-main-light dark:text-text-main-dark">Weekly Overview</h2>
                         <p className="text-sm text-text-muted-light dark:text-text-muted-dark">Last updated: Just now</p>
                       </div>
-                      <div className="flex gap-2">
-                        <button className="flex items-center gap-2 rounded-lg border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark px-3 py-1.5 text-sm font-medium text-text-main-light dark:text-text-main-dark hover:bg-background-light dark:hover:bg-gray-700">
+                      <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                        <button className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark px-3 py-2 text-sm font-medium text-text-main-light dark:text-text-main-dark hover:bg-background-light dark:hover:bg-gray-700">
                           <span className="material-symbols-outlined text-[18px]">cloud_upload</span>
                           Import
                         </button>
-                        <button className="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-primary-hover">
+                        <button className="w-full sm:w-auto rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-hover">
                           Export Report
                         </button>
                       </div>
@@ -191,11 +284,11 @@ export const Landing: React.FC = () => {
                           <span className="material-symbols-outlined text-primary">table_view</span>
                         </div>
                         <div className="flex gap-2 mt-4">
-                          <button className="flex-1 flex items-center justify-center gap-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1.5 transition-colors">
+                          <button className="flex-1 flex items-center justify-center gap-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 min-h-[36px] transition-colors">
                             <span className="material-symbols-outlined text-sm">bar_chart</span>
                             Visualize
                           </button>
-                          <button className="flex-1 flex items-center justify-center gap-1 rounded bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1.5 transition-colors">
+                          <button className="flex-1 flex items-center justify-center gap-1 rounded bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-2 min-h-[36px] transition-colors">
                             <span className="material-symbols-outlined text-sm">download</span>
                             Export
                           </button>
@@ -214,11 +307,11 @@ export const Landing: React.FC = () => {
                           <span className="material-symbols-outlined text-primary">table_view</span>
                         </div>
                         <div className="flex gap-2 mt-4">
-                          <button className="flex-1 flex items-center justify-center gap-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1.5 transition-colors">
+                          <button className="flex-1 flex items-center justify-center gap-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 min-h-[36px] transition-colors">
                             <span className="material-symbols-outlined text-sm">bar_chart</span>
                             Visualize
                           </button>
-                          <button className="flex-1 flex items-center justify-center gap-1 rounded bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1.5 transition-colors">
+                          <button className="flex-1 flex items-center justify-center gap-1 rounded bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-2 min-h-[36px] transition-colors">
                             <span className="material-symbols-outlined text-sm">download</span>
                             Export
                           </button>
@@ -237,11 +330,11 @@ export const Landing: React.FC = () => {
                           <span className="material-symbols-outlined text-primary">table_view</span>
                         </div>
                         <div className="flex gap-2 mt-4">
-                          <button className="flex-1 flex items-center justify-center gap-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1.5 transition-colors">
+                          <button className="flex-1 flex items-center justify-center gap-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 min-h-[36px] transition-colors">
                             <span className="material-symbols-outlined text-sm">bar_chart</span>
                             Visualize
                           </button>
-                          <button className="flex-1 flex items-center justify-center gap-1 rounded bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1.5 transition-colors">
+                          <button className="flex-1 flex items-center justify-center gap-1 rounded bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-2 min-h-[36px] transition-colors">
                             <span className="material-symbols-outlined text-sm">download</span>
                             Export
                           </button>
@@ -250,12 +343,12 @@ export const Landing: React.FC = () => {
                     </div>
 
                     <div className="mt-6 rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark shadow-sm overflow-hidden">
-                      <div className="border-b border-border-light dark:border-border-dark px-6 py-4 flex justify-between items-center">
+                      <div className="border-b border-border-light dark:border-border-dark px-4 sm:px-6 py-4 flex justify-between items-center">
                         <h3 className="font-semibold text-text-main-light dark:text-text-main-dark">Recent Transactions</h3>
                         <button className="text-xs font-medium text-primary">View All</button>
                       </div>
                       <div className="p-0">
-                        <div className="flex items-center justify-between border-b border-border-light dark:border-border-dark px-6 py-3 hover:bg-background-light dark:hover:bg-gray-700/50 transition-colors">
+                        <div className="flex items-center justify-between border-b border-border-light dark:border-border-dark px-4 sm:px-6 py-3 hover:bg-background-light dark:hover:bg-gray-700/50 transition-colors">
                           <div className="flex items-center gap-3">
                             <div className="h-8 w-8 rounded bg-background-light dark:bg-gray-700 flex items-center justify-center text-text-muted-light dark:text-text-muted-dark">
                               <span className="material-symbols-outlined text-sm">description</span>
@@ -264,7 +357,7 @@ export const Landing: React.FC = () => {
                           </div>
                           <span className="text-sm font-bold text-text-main-light dark:text-text-main-dark">$1,200.00</span>
                         </div>
-                        <div className="flex items-center justify-between border-b border-border-light dark:border-border-dark px-6 py-3 hover:bg-background-light dark:hover:bg-gray-700/50 transition-colors">
+                        <div className="flex items-center justify-between border-b border-border-light dark:border-border-dark px-4 sm:px-6 py-3 hover:bg-background-light dark:hover:bg-gray-700/50 transition-colors">
                           <div className="flex items-center gap-3">
                             <div className="h-8 w-8 rounded bg-background-light dark:bg-gray-700 flex items-center justify-center text-text-muted-light dark:text-text-muted-dark">
                               <span className="material-symbols-outlined text-sm">description</span>
@@ -273,7 +366,7 @@ export const Landing: React.FC = () => {
                           </div>
                           <span className="text-sm font-bold text-text-main-light dark:text-text-main-dark">$2,450.00</span>
                         </div>
-                        <div className="flex items-center justify-between px-6 py-3 hover:bg-background-light dark:hover:bg-gray-700/50 transition-colors">
+                        <div className="flex items-center justify-between px-4 sm:px-6 py-3 hover:bg-background-light dark:hover:bg-gray-700/50 transition-colors">
                           <div className="flex items-center gap-3">
                             <div className="h-8 w-8 rounded bg-background-light dark:bg-gray-700 flex items-center justify-center text-text-muted-light dark:text-text-muted-dark">
                               <span className="material-symbols-outlined text-sm">description</span>
@@ -293,7 +386,7 @@ export const Landing: React.FC = () => {
 
         <AnimatedSection>
           <section className="bg-surface-light dark:bg-surface-dark py-24 sm:py-32 transition-colors duration-200" id="features">
-            <div className="mx-auto max-w-7xl px-6 lg:px-8">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
               <div className="mx-auto max-w-2xl text-center">
                 <h2 className="text-base font-semibold leading-7 text-primary">Powerful features</h2>
                 <p className="mt-2 text-3xl font-bold tracking-tight text-text-main-light dark:text-text-main-dark sm:text-4xl font-display">Everything you need for data visualization</p>
@@ -342,7 +435,7 @@ export const Landing: React.FC = () => {
 
         <AnimatedSection>
           <section className="border-y border-border-light dark:border-border-dark bg-background-light dark:bg-gray-800/50 py-16 transition-colors duration-200">
-            <div className="mx-auto max-w-7xl px-6 lg:px-8">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
               <h2 className="text-center text-sm font-semibold leading-8 text-text-muted-light dark:text-text-muted-dark">TRUSTED BY INNOVATIVE TEAMS AT</h2>
               <div className="mx-auto mt-8 grid max-w-lg grid-cols-4 items-center gap-x-8 gap-y-10 sm:max-w-xl sm:grid-cols-6 sm:gap-x-10 lg:mx-0 lg:max-w-none lg:grid-cols-5">
                 <div className="col-span-2 max-h-12 w-full object-contain lg:col-span-1 grayscale opacity-50 font-bold text-xl text-text-muted-light dark:text-text-muted-dark flex justify-center">Acme Corp</div>
@@ -357,15 +450,15 @@ export const Landing: React.FC = () => {
 
         <AnimatedSection>
           <section className="relative isolate overflow-hidden bg-surface-dark py-16 sm:py-24 lg:py-32 transition-colors duration-200">
-          <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mx-auto grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-2">
               <div className="max-w-xl lg:max-w-lg">
                 <h2 className="text-3xl font-bold tracking-tight text-text-main-dark sm:text-4xl font-display">Ready to visualize your success?</h2>
                 <p className="mt-4 text-lg leading-8 text-text-muted-dark">Join thousands of data analysts and business leaders who use DataWorld to make better decisions, faster.</p>
-                <div className="mt-6 flex max-w-md gap-x-4">
+                <div className="mt-6 flex w-full max-w-md flex-col sm:flex-row gap-3">
                   <label className="sr-only" htmlFor="email-address">Email address</label>
-                  <input autoComplete="email" className="min-w-0 flex-auto rounded-md border-0 bg-white/5 px-3.5 py-2 text-text-main-dark shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 placeholder-text-muted-dark/50" id="email-address" name="email" placeholder="Enter your email" required />
-                  <button className="flex-none rounded-md bg-primary px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" type="submit">Get Started</button>
+                  <input autoComplete="email" className="min-w-0 w-full flex-auto rounded-md border-0 bg-white/5 px-3.5 py-3 text-text-main-dark shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 placeholder-text-muted-dark/50" id="email-address" name="email" placeholder="Enter your email" required />
+                  <button className="w-full sm:w-auto rounded-md bg-primary px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" type="submit">Get Started</button>
                 </div>
               </div>
               <dl className="grid grid-cols-1 gap-x-8 gap-y-10 sm:grid-cols-2 lg:pt-2">
@@ -395,7 +488,7 @@ export const Landing: React.FC = () => {
 
       <AnimatedSection>
         <footer className="bg-surface-light dark:bg-surface-dark transition-colors duration-200">
-        <div className="mx-auto max-w-7xl overflow-hidden px-6 py-20 sm:py-24 lg:px-8">
+        <div className="mx-auto max-w-7xl overflow-hidden px-4 sm:px-6 py-20 sm:py-24 lg:px-8">
           <nav aria-label="Footer" className="-mb-6 columns-2 sm:flex sm:justify-center sm:space-x-12">
             <div className="pb-6">
               <a className="text-sm leading-6 text-text-muted-light dark:text-text-muted-dark hover:text-primary transition-colors" href="#">About</a>

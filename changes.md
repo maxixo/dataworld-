@@ -1,5 +1,28 @@
 # Changes Documentation
 
+## Drafts Mobile UX + Header Navigation - January 1, 2026
+
+### Overview
+Improved mobile navigation and drafts page responsiveness, focusing on touch targets, layout behavior, and menu accessibility.
+
+### Frontend Changes
+**File:** `client/src/components/Header.tsx`
+- Added a mobile hamburger toggle with a slide-out navigation drawer and backdrop.
+- Closed menus on route change and prevented background scroll when the drawer is open.
+- Enlarged touch targets for header actions and tightened spacing on mobile.
+- Updated the user dropdown to fit small screens and added a close button.
+
+**File:** `client/src/pages/Drafts.tsx`
+- Added a mobile horizontal tab bar and a floating "New" action button.
+- Made the sidebar responsive: hidden on mobile, icon-only on tablet, full layout on desktop.
+- Adjusted page spacing and typography for mobile (`px-4`, `py-6`, `text-2xl` title).
+- Enhanced draft cards with larger touch targets, keyboard access, and improved spacing.
+- Tuned empty and loading states for mobile sizing and readability.
+
+### Files Modified
+1. `client/src/components/Header.tsx`
+2. `client/src/pages/Drafts.tsx`
+
 ## AI-Powered Insights Integration - December 28, 2025
 
 ### Overview

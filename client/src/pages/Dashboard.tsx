@@ -10,7 +10,7 @@ import type { FilterType } from '../components/DatasetFilters';
 import { DatasetCard } from '../components/DatasetCard';
 import RecentActivity from '../components/RecentActivity';
 import type { ActivityItem } from '../components/RecentActivity';
-import { StorageUsage } from '../components/StorageUsage';
+import RecentDrafts from '../components/RecentDrafts';
 import { API_BASE_URL } from '../config/api';
 import { getFileType } from '../utils/formatters';
 
@@ -25,6 +25,17 @@ interface Dataset {
     updatedAt?: string;
 }
 
+interface Draft {
+    _id: string;
+    title: string;
+    content: string;
+    isEncrypted: boolean;
+    label?: string;
+    isDeleted: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
+
 export const Dashboard: React.FC = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
@@ -33,8 +44,8 @@ export const Dashboard: React.FC = () => {
     const [activeFilter, setActiveFilter] = useState<FilterType>('ALL');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [storageUsed, setStorageUsed] = useState(0);
     const [activities, setActivities] = useState<ActivityItem[]>([]);
+    const [drafts, setDrafts] = useState<Draft[]>([]);
 
     const fetchDatasets = async () => {
         try {
@@ -45,12 +56,6 @@ export const Dashboard: React.FC = () => {
             });
             setDatasets(response.data);
             setFilteredDatasets(response.data);
-
-            // Calculate total storage used
-            const totalSize = response.data.reduce((sum: number, dataset: Dataset) => {
-                return sum + (dataset.fileSize || 0);
-            }, 0);
-            setStorageUsed(totalSize);
 
             setError(null);
         } catch (err: any) {
@@ -79,6 +84,23 @@ export const Dashboard: React.FC = () => {
             setActivities(activityItems);
         }
     }, [datasets]);
+
+    // Fetch drafts
+    const fetchDrafts = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`${API_BASE_URL}/drafts?type=drafts`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            setDrafts(response.data);
+        } catch (err: any) {
+            console.error('Failed to fetch drafts:', err);
+        }
+    };
+
+    useEffect(() => {
+        fetchDrafts();
+    }, []);
 
     useEffect(() => {
         // Filter datasets based on active filter
@@ -117,10 +139,6 @@ export const Dashboard: React.FC = () => {
     const handleNewProject = () => {
         // Scroll to upload section
         window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    const handleUpgrade = () => {
-        alert('Upgrade feature coming soon!');
     };
 
     const handleLogout = () => {
@@ -224,14 +242,10 @@ export const Dashboard: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Right Column: Activity + Storage */}
+                    {/* Right Column: Activity + Drafts */}
                     <div className="lg:col-span-1 space-y-6">
                         <RecentActivity activities={activities} />
-                        <StorageUsage
-                            used={storageUsed}
-                            total={20 * 1024 * 1024 * 1024} // 20GB
-                            onUpgrade={handleUpgrade}
-                        />
+                        <RecentDrafts drafts={drafts} />
                     </div>
                 </div>
             </main>
