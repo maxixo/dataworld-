@@ -29,14 +29,10 @@ export const useReduxAuth = () => {
     try {
       dispatch(googleLoginStart());
       
-      console.log('📤 Sending Google user data to backend...');
-      
-      // Send user data to backend (NOT Firebase token)
+// Send user data to backend (NOT Firebase token)
       const response = await googleAuthService.authenticateWithGoogle(userData);
       
-      console.log('✅ Backend response received');
-      
-      dispatch(googleLoginSuccess(response));
+dispatch(googleLoginSuccess(response));
       return response;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Authentication failed';

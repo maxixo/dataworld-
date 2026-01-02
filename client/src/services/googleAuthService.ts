@@ -30,13 +30,7 @@ class GoogleAuthService {
     uid: string;
   }): Promise<AuthResponse> {
     try {
-      console.log('📤 Sending user data to backend:', {
-        email: user.email,
-        uid: user.uid,
-        displayName: user.displayName,
-      });
-
-      const response = await axios.post<AuthResponse>(
+const response = await axios.post<AuthResponse>(
         `${API_URL}/api/auth/google`,
         {
           email: user.email,
@@ -46,8 +40,7 @@ class GoogleAuthService {
         }
       );
 
-      console.log('📥 Backend response received');
-      return response.data;
+return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const message = error.response?.data?.message || 'Google authentication failed';

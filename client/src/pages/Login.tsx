@@ -40,15 +40,11 @@ export const Login = () => {
         setError('');
         
         try {
-            console.log('🔵 Starting Google sign-in...');
-            
-            // 1. Sign in with Firebase popup
+// 1. Sign in with Firebase popup
             const provider = new GoogleAuthProvider();
             const result = await signInWithPopup(auth, provider);
             
-            console.log('🟢 Firebase sign-in successful:', result.user.email);
-            
-            // 2. Extract user info from Firebase
+// 2. Extract user info from Firebase
             const firebaseUser = result.user;
             
             // 3. Send user data through Redux (which calls the backend)
@@ -59,9 +55,7 @@ export const Login = () => {
                 uid: firebaseUser.uid,
             });
             
-            console.log('🟢 Backend authentication successful');
-            
-            // 4. Also update AuthContext for compatibility
+// 4. Also update AuthContext for compatibility
             login(response.token, response.user);
             
             // 5. Navigate to app

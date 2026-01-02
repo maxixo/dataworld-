@@ -27,14 +27,11 @@ async function encryptBuffer(plain: Buffer, password: string) {
 }
 
 async function run() {
-  console.log('Starting in-memory MongoDB...');
-  const mongod = await MongoMemoryServer.create();
+const mongod = await MongoMemoryServer.create();
   const uri = mongod.getUri();
 
   await mongoose.connect(uri);
-  console.log('Connected mongoose to in-memory MongoDB');
-
-  // Dynamically import the app after connecting DB
+// Dynamically import the app after connecting DB
   const appModule = await import('../app');
   const app = appModule.default;
 
@@ -42,9 +39,7 @@ async function run() {
     // @ts-ignore
     const port = server.address().port;
     const baseUrl = `http://localhost:${port}`;
-    console.log(`App listening on ${baseUrl}`);
-
-    try {
+try {
       // 1) Create a test user
       const signupRes = await axios.post(`${baseUrl}/api/auth/signup`, {
         username: 'testuser',
@@ -52,9 +47,7 @@ async function run() {
         password: 'Password1'
       });
       const token = signupRes.data.token;
-      console.log('Created test user, token length:', token.length);
-
-      // 2) Prepare a small "file" buffer and encrypt it as client would
+// 2) Prepare a small "file" buffer and encrypt it as client would
       const password = 'secret1234';
       const fileContent = Buffer.from('Hello, this is a secret file');
       const enc = await encryptBuffer(fileContent, password);
@@ -87,16 +80,13 @@ async function run() {
       );
 
       const dataset = uploadRes.data;
-      console.log('Uploaded encrypted dataset id:', dataset._id);
-
-      // 4) Fetch blob as JSON (base64) and compare
+// 4) Fetch blob as JSON (base64) and compare
       const fetchJson = await axios.get(`${baseUrl}/api/datasets/${dataset._id}/blob`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
       if (fetchJson.data.encryptedBlobBase64 === encryptedBase64) {
-        console.log('JSON blob match: OK');
-      } else {
+} else {
         console.error('JSON blob mismatch');
       }
 
@@ -108,29 +98,19 @@ async function run() {
       const received = Buffer.from(fetchRaw.data as ArrayBuffer);
       const original = Buffer.from(enc.encrypted);
       if (received.equals(original)) {
-        console.log('Raw blob match: OK');
-      } else {
+} else {
         console.error('Raw blob mismatch');
       }
 
       // Check headers
       const headers = fetchRaw.headers;
-      console.log('Headers present:', {
-        x_salt: headers['x-salt'] || null,
-        x_iv: headers['x-iv'] || null,
-        x_encrypted_filename: headers['x-encrypted-filename'] || null,
-        content_type: headers['content-type'] || null
-      });
-
-      console.log('Integration test completed successfully');
     } catch (err: any) {
       console.error('Integration test failed:', err.message || err);
     } finally {
       server.close(async () => {
         await mongoose.disconnect();
         await mongod.stop();
-        console.log('Cleaned up test server and in-memory MongoDB');
-      });
+});
     }
   });
 }

@@ -95,21 +95,16 @@ export const DraftEditor: React.FC = () => {
 
     const fetchDraft = async () => {
         try {
-            console.log('Fetching draft with ID:', id);
             const token = localStorage.getItem('token');
             const response = await axios.get(`${API_BASE_URL}/drafts/${id}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             
             const draft = response.data;
-            console.log('Draft loaded:', draft);
             setServerDraft(draft);
             setIsEncrypted(draft.isEncrypted || false);
 
             if (draft.isEncrypted) {
-                console.log('Encrypted title:', draft.title);
-                console.log('Encrypted content:', draft.content);
-                
                 // Show unlock modal for encrypted drafts
                 setShowUnlockModal(true);
                 setIsEncrypted(true);
@@ -130,33 +125,20 @@ export const DraftEditor: React.FC = () => {
 
         setError(null);
         setSaving(true);
-        console.log('Attempting to decrypt draft...');
-
         try {
             // Verify password first
-            console.log('Verifying password...');
-            console.log('Unlock password:', unlockPassword);
-            console.log('Server passwordHash:', serverDraft.passwordHash);
-            console.log('PasswordHash length:', serverDraft.passwordHash?.length);
-            
             const isPasswordValid = await verifyPassword(
                 unlockPassword,
                 serverDraft.passwordHash || ''
             );
 
-            console.log('Password verification result:', isPasswordValid);
             if (!isPasswordValid) {
-                console.log('Password verification failed');
-                console.log('Expected hash for password:', await hashPassword(unlockPassword));
                 setError('Incorrect password');
                 setSaving(false);
                 return;
             }
 
-            console.log('Password verified successfully');
-            
             // Decrypt the draft
-            console.log('Decrypting title and content...');
             const decrypted = await decryptDraft(
                 serverDraft.title,
                 serverDraft.content,
@@ -165,10 +147,6 @@ export const DraftEditor: React.FC = () => {
                 serverDraft.iv || ''
             );
 
-            console.log('Decryption successful!');
-            console.log('Decrypted title:', decrypted.title);
-            console.log('Decrypted content length:', decrypted.content.length);
-            
             // Set the decrypted content in the editor
             setTitle(decrypted.title);
             setContent(decrypted.content);
@@ -187,7 +165,6 @@ export const DraftEditor: React.FC = () => {
                 setSaved(false);
             }, 2000);
             
-            console.log('Note decrypted and ready for editing');
         } catch (err: any) {
             console.error('Decryption error:', err);
             console.error('Error message:', err.message);
@@ -210,19 +187,13 @@ export const DraftEditor: React.FC = () => {
         // Trigger immediate save using autosave hook
         setSaving(true);
         setError(null);
-        console.log('Saving draft...');
-
         try {
             const token = localStorage.getItem('token');
 
             if (isEncrypted && (password || decryptionPasswordRef.current)) {
                 // Use ref password if available, otherwise fall back to state
                 const savePassword = decryptionPasswordRef.current || password;
-                console.log('Re-encrypting draft with saved password...');
-                
                 const encrypted = await encryptDraft(title, content, savePassword);
-                console.log('Encryption successful');
-                console.log('Encrypted title length:', encrypted.encryptedTitle.length);
                 
                 const draftData = {
                     title: encrypted.encryptedTitle,
@@ -238,16 +209,13 @@ export const DraftEditor: React.FC = () => {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                 } else {
-                    const response = await axios.post(`${API_BASE_URL}/drafts`, draftData, {
+                    await axios.post(`${API_BASE_URL}/drafts`, draftData, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                     setDraftCreated(true);
-                    console.log('New draft created with ID:', response.data._id);
                 }
-                console.log('Encrypted draft saved successfully');
             } else {
                 // Save normally for unencrypted drafts
-                console.log('Saving unencrypted draft...');
                 const draftData = { title, content };
 
                 if (id) {
@@ -255,13 +223,11 @@ export const DraftEditor: React.FC = () => {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                 } else {
-                    const response = await axios.post(`${API_BASE_URL}/drafts`, draftData, {
+                    await axios.post(`${API_BASE_URL}/drafts`, draftData, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                     setDraftCreated(true);
-                    console.log('New draft created with ID:', response.data._id);
                 }
-                console.log('Draft saved successfully');
             }
 
             setSaving(false);
@@ -361,23 +327,24 @@ export const DraftEditor: React.FC = () => {
             {/* Main Content */}
             <main className="max-w-[1200px] mx-auto px-6 py-8">
                 {/* Header Actions */}
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
                     <div className="flex items-center gap-4">
                         <button
                             onClick={handleBack}
-                            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                            className="flex items-center gap-2 min-h-[44px] rounded-lg px-2 text-sm sm:text-base text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                            aria-label="Back to drafts"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                             </svg>
-                            Back to Drafts
+                            <span className="hidden sm:inline">Back to Drafts</span>
                         </button>
                     </div>
                     
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:justify-end">
                         {/* Autosave Status Indicator */}
                         {autosave.status === 'saving' && (
-                            <span className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 font-medium">
+                            <span className="flex items-center gap-2 text-xs sm:text-sm text-blue-600 dark:text-blue-400 font-medium whitespace-nowrap">
                                 <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -386,7 +353,7 @@ export const DraftEditor: React.FC = () => {
                             </span>
                         )}
                         {autosave.status === 'saved' && (
-                            <span className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400 font-medium">
+                            <span className="flex items-center gap-2 text-xs sm:text-sm text-green-600 dark:text-green-400 font-medium whitespace-nowrap">
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                 </svg>
@@ -394,7 +361,7 @@ export const DraftEditor: React.FC = () => {
                             </span>
                         )}
                         {autosave.status === 'error' && (
-                            <span className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400 font-medium">
+                            <span className="flex items-center gap-2 text-xs sm:text-sm text-red-600 dark:text-red-400 font-medium whitespace-nowrap">
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                 </svg>
@@ -402,36 +369,38 @@ export const DraftEditor: React.FC = () => {
                             </span>
                         )}
                         {saved && (
-                            <span className="text-sm text-green-600 dark:text-green-400 font-medium">
+                            <span className="text-xs sm:text-sm text-green-600 dark:text-green-400 font-medium whitespace-nowrap">
                                 Saved!
                             </span>
                         )}
                         {!isEncrypted && (
                             <button
                                 onClick={() => setShowLockModal(true)}
-                                className="flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium bg-amber-600 hover:bg-amber-700 text-white transition-colors"
+                                className="flex items-center justify-center gap-2 min-h-[44px] min-w-[44px] px-3 sm:px-6 py-2.5 rounded-lg font-medium bg-amber-600 hover:bg-amber-700 text-white transition-colors"
+                                aria-label="Lock and encrypt"
                             >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
                                 </svg>
-                                Lock & Encrypt
+                                <span className="hidden sm:inline">Lock & Encrypt</span>
                             </button>
                         )}
                         {isEncrypted && (
                             <button
                                 disabled={true}
-                                className="flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium bg-green-600 text-white cursor-default"
+                                className="flex items-center justify-center gap-2 min-h-[44px] min-w-[44px] px-3 sm:px-6 py-2.5 rounded-lg font-medium bg-green-600 text-white cursor-default"
+                                aria-label="Encrypted"
                             >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                 </svg>
-                                Encrypted
+                                <span className="hidden sm:inline">Encrypted</span>
                             </button>
                         )}
                         <button
                             onClick={handleSave}
                             disabled={saving}
-                            className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium transition-colors ${
+                            className={`flex items-center justify-center gap-2 min-h-[44px] min-w-[44px] px-3 sm:px-6 py-2.5 rounded-lg font-medium transition-colors ${
                                 saving
                                     ? 'bg-gray-400 cursor-not-allowed text-white'
                                     : 'bg-blue-600 hover:bg-blue-700 text-white'
@@ -443,14 +412,14 @@ export const DraftEditor: React.FC = () => {
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                    Saving...
+                                    <span className="hidden sm:inline">Saving...</span>
                                 </>
                             ) : (
                                 <>
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                     </svg>
-                                    Save
+                                    <span className="hidden sm:inline">Save</span>
                                 </>
                             )}
                         </button>

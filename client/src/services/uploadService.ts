@@ -26,9 +26,7 @@ export async function uploadEncryptedDataset(options: EncryptedUploadOptions): P
   const { name, fileName, fileSize, encryptedData, label, mimeType } = options;
   const token = localStorage.getItem('token');
   
-  console.log('📤 [UPLOAD] Uploading encrypted dataset:', name, 'with salt:', encryptedData.salt, 'iv:', encryptedData.iv);
-  
-  const response = await axios.post(
+const response = await axios.post(
     `${API_BASE_URL}/datasets`,
     {
       name,
@@ -54,8 +52,7 @@ export async function uploadEncryptedDataset(options: EncryptedUploadOptions): P
   );
   
   if (response.status === 200) {
-    console.log('✓ [UPLOAD] Encrypted dataset uploaded successfully');
-  }
+}
 }
 
 /**
@@ -65,9 +62,7 @@ export async function uploadNonEncryptedDataset(options: NonEncryptedUploadOptio
   const { name, fileName, fileSize, parsedData } = options;
   const token = localStorage.getItem('token');
   
-  console.log('📤 [UPLOAD] Uploading non-encrypted dataset:', name);
-  
-  const response = await axios.post(
+const response = await axios.post(
     `${API_BASE_URL}/datasets`,
     {
       name,
@@ -86,6 +81,5 @@ export async function uploadNonEncryptedDataset(options: NonEncryptedUploadOptio
   );
   
   if (response.status === 200) {
-    console.log('✓ [UPLOAD] Non-encrypted dataset uploaded successfully');
-  }
+}
 }

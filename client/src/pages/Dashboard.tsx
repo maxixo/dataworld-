@@ -89,10 +89,31 @@ export const Dashboard: React.FC = () => {
     const fetchDrafts = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.get(`${API_BASE_URL}/drafts?type=drafts`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            setDrafts(response.data);
+            const [draftsResult, lockedResult] = await Promise.allSettled([
+                axios.get(`${API_BASE_URL}/drafts?type=drafts`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }),
+                axios.get(`${API_BASE_URL}/drafts?type=locked-notes`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+            ]);
+
+            const combinedDrafts: Draft[] = [];
+            if (draftsResult.status === 'fulfilled') {
+                combinedDrafts.push(...draftsResult.value.data);
+            } else {
+                console.error('Failed to fetch drafts:', draftsResult.reason);
+            }
+            if (lockedResult.status === 'fulfilled') {
+                combinedDrafts.push(...lockedResult.value.data);
+            } else {
+                console.error('Failed to fetch locked notes:', lockedResult.reason);
+            }
+
+            const uniqueDrafts = Array.from(
+                new Map(combinedDrafts.map((draft) => [draft._id, draft])).values()
+            );
+            setDrafts(uniqueDrafts);
         } catch (err: any) {
             console.error('Failed to fetch drafts:', err);
         }

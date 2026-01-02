@@ -40,7 +40,6 @@ export const uploadDataset = async (req: AuthRequest, res: Response) => {
         };
 
         if (encryptedBlobBase64) {
-            console.log('🔥 [SERVER] Received encrypted upload - salt:', salt, 'iv:', iv, 'encryptedFilename:', encryptedFileName, 'nameS:', encryptedFileNameSalt, 'nameIv:', encryptedFileNameIv);
             // Store encrypted blob and metadata
             const buffer = Buffer.from(encryptedBlobBase64, 'base64');
             newDataset.encryptedBlob = buffer;
@@ -52,13 +51,6 @@ export const uploadDataset = async (req: AuthRequest, res: Response) => {
             newDataset.encryptedFileNameSalt = encryptedFileNameSalt;
             newDataset.encryptedFileNameIv = encryptedFileNameIv;
             newDataset.mimeType = mimeType;
-            console.log('✓ [SERVER] About to store - newDataset fields:', { 
-                salt: newDataset.salt, 
-                iv: newDataset.iv, 
-                encryptedFileName: newDataset.encryptedFileName,
-                encryptedFileNameSalt: newDataset.encryptedFileNameSalt,
-                encryptedFileNameIv: newDataset.encryptedFileNameIv
-            });
         } else {
             // Store parsed data
             newDataset.data = data;
@@ -67,16 +59,6 @@ export const uploadDataset = async (req: AuthRequest, res: Response) => {
         }
 
         const savedDataset = await Dataset.create(newDataset) as DatasetDocument;
-        
-        if (encryptedBlobBase64) {
-            console.log('✓ [SERVER] Saved to DB - datasetId:', savedDataset._id);
-            console.log('  - salt:', savedDataset.salt);
-            console.log('  - iv:', savedDataset.iv);
-            console.log('  - encryptedFileName:', savedDataset.encryptedFileName);
-            console.log('  - encryptedFileNameSalt:', savedDataset.encryptedFileNameSalt);
-            console.log('  - encryptedFileNameIv:', savedDataset.encryptedFileNameIv);
-            console.log('  - isEncrypted:', savedDataset.isEncrypted);
-        }
 
         res.json(savedDataset);
     } catch (err) {
@@ -146,21 +128,8 @@ export const getDatasetBlob = async (req: AuthRequest, res: Response) => {
         const dataset = await Dataset.findById(id).lean<DatasetDocument | null>();
         
         if (!dataset) {
-            console.log('❌ [SERVER] Dataset not found:', id);
             return res.status(404).json({ message: 'Dataset not found' });
         }
-
-        console.log('📤 [SERVER] Retrieved dataset from DB');
-        console.log('  - _id:', dataset._id);
-        console.log('  - isEncrypted:', dataset.isEncrypted);
-        console.log('  - salt:', dataset.salt);
-        console.log('  - iv:', dataset.iv);
-        console.log('  - encryptedFileName:', dataset.encryptedFileName);
-        console.log('  - encryptedFileNameSalt:', dataset.encryptedFileNameSalt);
-        console.log('  - encryptedFileNameIv:', dataset.encryptedFileNameIv);
-        console.log('  - mimeType:', dataset.mimeType);
-        console.log('  - encryptedBlob exists:', !!dataset.encryptedBlob);
-        console.log('  - encryptedBlob size:', dataset.encryptedBlob?.length);
 
         if (dataset.user.toString() !== userId) {
             return res.status(403).json({ message: 'Unauthorized' });
@@ -174,10 +143,7 @@ export const getDatasetBlob = async (req: AuthRequest, res: Response) => {
         // This ensures reliable metadata transmission (headers can be lost/modified by proxies)
         const raw = req.query.raw === '1' || req.query.raw === 'true';
         if (raw) {
-            console.log('📤 [SERVER] Sending encrypted blob and metadata in JSON');
             const encryptedBase64 = dataset.encryptedBlob.toString('base64');
-            console.log('✓ [SERVER] JSON response prepared - blob size:', encryptedBase64.length);
-            
             return res.json({
                 blob: encryptedBase64,
                 salt: dataset.salt,
@@ -191,7 +157,6 @@ export const getDatasetBlob = async (req: AuthRequest, res: Response) => {
 
         const encryptedBase64 = dataset.encryptedBlob.toString('base64');
 
-        console.log('📤 [SERVER] Sending JSON response with metadata');
         res.json({
             encryptedBlobBase64: encryptedBase64,
             salt: dataset.salt,

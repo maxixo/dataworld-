@@ -22,13 +22,10 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
 const connectDB = async () => {
     // Get MongoDB URI from environment variables or use default
     const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/dataworld';
-    console.log(`Attempting to connect to MongoDB...`);
-
     try {
         // Configure DNS servers for resolution
         const dnsServers = [process.env.DNS_SERVER1 || '1.1.1.1', process.env.DNS_SERVER2 || '8.8.8.8'];
         dns.setServers(dnsServers);
-        console.log('Using DNS servers:', dns.getServers());
     } catch (e) {
         console.warn('Could not set DNS servers:', e);
     }
@@ -41,10 +38,8 @@ const connectDB = async () => {
             const srvName = `_mongodb._tcp.${host}`;
             // Resolve SRV records
             const srv = await dnsPromises.resolveSrv(srvName);
-            console.log(`SRV records for ${srvName}:`, srv.map(s => `${s.name}:${s.port}`));
         } catch (err) {
             console.error(`SRV lookup failed for MongoDB host. Error:`, err);
-            console.log('Hint: DNS SRV resolution failed (ESERVFAIL).');
         }
     }
 
@@ -53,10 +48,8 @@ const connectDB = async () => {
         await mongoose.connect(mongoUri, {
             serverSelectionTimeoutMS: 5000,
         });
-        console.log('MongoDB Connected successfully!');
     } catch (err) {
         console.error('CRITICAL: MongoDB connection error:', err);
-        console.log('Please check your network connection and Atlas IP allowlist.');
     }
 };
 
@@ -65,5 +58,4 @@ connectDB();
 
 // Listen on 0.0.0.0 to accept connections from any network interface
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on port ${PORT}`);
 });

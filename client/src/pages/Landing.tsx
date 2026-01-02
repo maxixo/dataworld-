@@ -169,7 +169,6 @@ export const Landing: React.FC = () => {
               className="flex flex-wrap items-center justify-center gap-2 mb-6"
             >
               <span className="inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-950/50 px-2 py-1 text-xs font-medium text-blue-700 dark:text-blue-300 ring-1 ring-inset ring-blue-700/10 dark:ring-blue-500/20">New Feature</span>
-              <span className="text-xs sm:text-sm font-medium text-text-muted-light dark:text-text-muted-dark">AI-powered predictive modeling is here ›</span>
             </motion.div>
 
             <motion.h1

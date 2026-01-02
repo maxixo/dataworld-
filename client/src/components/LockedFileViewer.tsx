@@ -19,8 +19,7 @@ export const LockedFileViewer: React.FC<Props> = ({ id, label, onClose }) => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      console.log('🔓 [DOWNLOAD] Fetching encrypted blob for:', id);
-      // Request JSON with metadata (reliable transmission)
+// Request JSON with metadata (reliable transmission)
       const resp = await axios.get(`${API_BASE_URL}/datasets/${id}/blob?raw=1`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -29,27 +28,19 @@ export const LockedFileViewer: React.FC<Props> = ({ id, label, onClose }) => {
       const { blob: base64Blob, salt, iv, encryptedFileName, 
               encryptedFileNameSalt, encryptedFileNameIv, mimeType: serverMime } = resp.data;
       
-      console.log('🔓 [DOWNLOAD] Received metadata from JSON - salt:', salt, 'iv:', iv, 
-                  'encryptedFileName:', encryptedFileName, 'nameSalt:', encryptedFileNameSalt, 
-                  'nameIv:', encryptedFileNameIv);
-
-      // Convert base64 to ArrayBuffer
+// Convert base64 to ArrayBuffer
       const binaryString = atob(base64Blob);
       const bytes = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
         bytes[i] = binaryString.charCodeAt(i);
       }
       
-      console.log('🔓 [DOWNLOAD] Converted base64 to bytes - length:', bytes.length, 'password provided:', !!password);
-
-      // Decrypt blob and filename
+// Decrypt blob and filename
       const blob = await decryptToBlob(bytes.buffer, password, salt, iv, serverMime as string);
       const filename = encryptedFileName
         ? await decryptFilename(encryptedFileName, password, encryptedFileNameSalt, encryptedFileNameIv)
         : (label || `file-${id}`);
-      console.log('🔓 [DOWNLOAD] Decryption successful - filename:', filename, 'blobSize:', blob.size);
-
-      // Trigger download
+// Trigger download
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -62,8 +53,7 @@ export const LockedFileViewer: React.FC<Props> = ({ id, label, onClose }) => {
       setLoading(false);
       onClose();
     } catch (err: any) {
-      console.log('🔓 [DOWNLOAD] Decryption failed - error:', err.message);
-      setError(err.response?.data?.message || err.message || 'Decryption failed');
+setError(err.response?.data?.message || err.message || 'Decryption failed');
       setLoading(false);
     }
   };

@@ -116,8 +116,7 @@ export const googleAuth = async (req: Request, res: Response) => {
                 password: '', // No password for OAuth users
             });
             await user.save();
-            console.log('✅ New Google user created:', user.email);
-        } else {
+} else {
             // Update existing user with Google info if needed
             let updated = false;
             
@@ -136,8 +135,7 @@ export const googleAuth = async (req: Request, res: Response) => {
             
             if (updated) {
                 await user.save();
-                console.log('✅ User updated with Google info:', user.email);
-            }
+}
         }
 
         // Create JWT
