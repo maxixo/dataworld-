@@ -50,9 +50,7 @@ export const Landing: React.FC = () => {
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-8">
             <a className="flex items-center gap-2 group" href="#">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white shadow-lg shadow-primary/30 transition-transform group-hover:scale-110">
-                <span className="material-symbols-outlined text-[20px]">ssid_chart</span>
-              </div>
+              <img src="/logo.svg" alt="DataWorld Logo" className="h-8 w-8 transition-transform group-hover:scale-110" />
               <span className="font-display text-xl font-bold tracking-tight text-text-main-light dark:text-text-main-dark">DataWorld</span>
             </a>
             <div className="hidden md:flex gap-6">

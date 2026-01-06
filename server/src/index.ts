@@ -19,38 +19,44 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
  * Connects to MongoDB database with DNS configuration and SRV record resolution
  * Handles connection errors and provides detailed logging
  */
-const connectDB = async () => {
+const connectDB = async (retries = 5, delay = 5000) => {
     // Get MongoDB URI from environment variables or use default
     const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/dataworld';
-    try {
-        // Configure DNS servers for resolution
-        const dnsServers = [process.env.DNS_SERVER1 || '1.1.1.1', process.env.DNS_SERVER2 || '8.8.8.8'];
-        dns.setServers(dnsServers);
-    } catch (e) {
-        console.warn('Could not set DNS servers:', e);
-    }
 
-    // For SRV connections (Atlas clusters), perform SRV record lookup
-    if (mongoUri.startsWith('mongodb+srv://')) {
+    // Remove the manual SRV lookup - let MongoDB driver handle DNS resolution
+    // The driver has built-in DNS resolution that's more robust
+    
+    for (let i = 0; i < retries; i++) {
         try {
-            // Extract host from URI and construct SRV record name
-            const host = mongoUri.replace('mongodb+srv://', '').split('/')[0];
-            const srvName = `_mongodb._tcp.${host}`;
-            // Resolve SRV records
-            const srv = await dnsPromises.resolveSrv(srvName);
-        } catch (err) {
-            console.error(`SRV lookup failed for MongoDB host. Error:`, err);
+            console.log(`Attempting to connect to MongoDB... (Attempt ${i + 1}/${retries})`);
+            
+            await mongoose.connect(mongoUri, {
+                serverSelectionTimeoutMS: 10000,
+                connectTimeoutMS: 10000,
+                // Add these options for better connection handling
+                retryWrites: true,
+                w: 'majority',
+            });
+
+            console.log('✅ Successfully connected to MongoDB');
+            return;
+        } catch (err: any) {
+            console.error(`❌ MongoDB connection attempt ${i + 1} failed:`, err.message);
+            
+            if (i < retries - 1) {
+                console.log(`Retrying in ${delay / 1000} seconds...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
         }
     }
 
-    // Attempt MongoDB connection with timeout
-    try {
-        await mongoose.connect(mongoUri, {
-            serverSelectionTimeoutMS: 5000,
-        });
-    } catch (err) {
-        console.error('CRITICAL: MongoDB connection error:', err);
-    }
+    console.error('CRITICAL: Failed to connect to MongoDB after multiple attempts');
+    console.error('Server will continue running but database features will not work');
+    console.error('Please check:');
+    console.error('1. Your internet connection');
+    console.error('2. MongoDB Atlas cluster status (https://cloud.mongodb.com)');
+    console.error('3. Network access whitelist in MongoDB Atlas');
+    console.error('4. DNS settings if you are behind a corporate firewall');
 };
 
 connectDB();
