@@ -4,7 +4,7 @@
   "scripts": {
     "build": "npm --prefix server run build",
     "start":  "npm --prefix server start",
-    "dev": "nodemon src/server.ts"
+    "dev": "npm --prefix server run dev"
   },
   "engines": {
     "node": "20.x"
