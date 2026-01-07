@@ -2,7 +2,7 @@
   "name": "dataworld-backend",
   "version": "1.0.0",
   "scripts": {
-    "build": "cd server && npm run build",
+    "build": "cd server && npm install && npm run build",
     "start": "node server/dist/index.js",
     "dev": "nodemon src/server.ts"
   },
