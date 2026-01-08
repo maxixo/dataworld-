@@ -1,11 +1,11 @@
 [phases.setup]
-nixPkgs = ['nodejs', 'npm']
+nixPkgs = ['nodejs_20']
 
 [phases.install]
 cmds = ['npm ci']
 
 [phases.build]
-cmds = ['npm run build']
+cmds = ['npm install typescript', 'npx tsc']
 
 [start]
 cmd = 'npm start'
