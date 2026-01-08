@@ -17,6 +17,7 @@ if (isProduction) {
     app.set('trust proxy', 1);
 }
 const allowedOrigins = [
+    'https://dataworld-production.up.railway.app',
     'https://dataworld-xx.vercel.app',
     'https://dataworld-client-fx4l4dktk-maxixos-projects.vercel.app',
 ];
