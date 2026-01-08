@@ -10,6 +10,14 @@ export default defineConfig({
       'Cross-Origin-Embedder-Policy': 'unsafe-none'
     }
   },
+   preview: {
+    host: '0.0.0.0',
+    port: 4173,
+    allowedHosts: [
+      '.railway.app',  // Allow all Railway domains
+      'localhost'
+    ]
+  },
   build: {
     rollupOptions: {
       output: {
