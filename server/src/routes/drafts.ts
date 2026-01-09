@@ -8,7 +8,8 @@ import {
     updateDraft,
     deleteDraft,
     restoreDraft,
-    permanentDeleteDraft
+    permanentDeleteDraft,
+    bulkPermanentDeleteDrafts
 } from '../controllers/draftController';
 
 const router = Router();
@@ -24,6 +25,9 @@ router.get('/', getDrafts);
 
 // Get all locked notes
 router.get('/locked', getAllLockedNotes);
+
+// Permanently delete multiple drafts from trash
+router.post('/trash/bulk-delete', bulkPermanentDeleteDrafts);
 
 // Get a single draft by ID
 router.get('/:id', getDraft);

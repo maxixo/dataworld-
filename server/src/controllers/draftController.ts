@@ -193,3 +193,52 @@ export const permanentDeleteDraft = async (req: AuthRequest, res: Response) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+// Permanently delete multiple drafts from trash
+export const bulkPermanentDeleteDrafts = async (req: AuthRequest, res: Response) => {
+    try {
+        const { ids } = req.body;
+
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ message: 'ids must be a non-empty array' });
+        }
+
+        const uniqueIds = Array.from(
+            new Set(ids.filter((id) => typeof id === 'string' && id.trim() !== ''))
+        );
+
+        if (uniqueIds.length === 0) {
+            return res.status(400).json({ message: 'ids must contain valid draft ids' });
+        }
+
+        const drafts = await Draft.find({
+            _id: { $in: uniqueIds },
+            user: req.user?.userId,
+            isDeleted: true
+        }).select('_id');
+
+        const deletedIds = drafts.map((draft) => draft._id.toString());
+
+        if (deletedIds.length === 0) {
+            return res.json({
+                message: 'No trashed drafts found for deletion',
+                deletedCount: 0,
+                deletedIds
+            });
+        }
+
+        await Draft.deleteMany({
+            _id: { $in: deletedIds },
+            user: req.user?.userId,
+            isDeleted: true
+        });
+
+        res.json({
+            message: 'Drafts permanently deleted',
+            deletedCount: deletedIds.length,
+            deletedIds
+        });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};

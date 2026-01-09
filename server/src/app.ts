@@ -17,6 +17,7 @@ if (isProduction) {
 
 const allowedOrigins = [
   'https://dataworld-server-production.up.railway.app',
+  'https://dataworld-production.up.railway.app',
   'https://dataworld-xx.vercel.app',
   'https://dataworld-client-fx4l4dktk-maxixos-projects.vercel.app',
 ];
