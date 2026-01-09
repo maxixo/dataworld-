@@ -24,6 +24,7 @@ export const Drafts: React.FC = () => {
     const location = useLocation();
     const [activeTab, setActiveTab] = useState<TabType>('drafts');
     const [drafts, setDrafts] = useState<Draft[]>([]);
+    const [selectedTrashIds, setSelectedTrashIds] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -66,6 +67,17 @@ export const Drafts: React.FC = () => {
         fetchDrafts();
     }, [activeTab]);
 
+    useEffect(() => {
+        if (activeTab !== 'trash') {
+            setSelectedTrashIds([]);
+            return;
+        }
+
+        setSelectedTrashIds((prev) =>
+            prev.filter((id) => drafts.some((draft) => draft._id === id))
+        );
+    }, [activeTab, drafts]);
+
     const handleCreateNew = () => {
         navigate('/draft/new');
     };
@@ -97,6 +109,31 @@ export const Drafts: React.FC = () => {
             fetchDrafts();
         } catch (err: any) {
             alert(err.response?.data?.message || 'Failed to restore draft');
+        }
+    };
+
+    const toggleTrashSelection = (id: string) => {
+        setSelectedTrashIds((prev) =>
+            prev.includes(id) ? prev.filter((itemId) => itemId !== id) : [...prev, id]
+        );
+    };
+
+    const handleBulkDeleteDrafts = async () => {
+        if (selectedTrashIds.length === 0) return;
+
+        if (!window.confirm('Permanently delete selected drafts? This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            await axios.post(`${API_BASE_URL}/drafts/trash/bulk-delete`, { ids: selectedTrashIds }, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            setSelectedTrashIds([]);
+            fetchDrafts();
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'Failed to delete drafts');
         }
     };
 
@@ -180,6 +217,26 @@ export const Drafts: React.FC = () => {
 
         return (
             <div className="space-y-4">
+                {activeTab === 'trash' && (
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                            {selectedTrashIds.length === 0
+                                ? 'No items selected'
+                                : `${selectedTrashIds.length} selected`}
+                        </span>
+                        <button
+                            onClick={handleBulkDeleteDrafts}
+                            disabled={selectedTrashIds.length === 0}
+                            className={`inline-flex items-center justify-center min-h-[44px] px-4 py-2 rounded-lg font-medium transition-colors ${
+                                selectedTrashIds.length === 0
+                                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400'
+                                    : 'bg-red-600 text-white hover:bg-red-700'
+                            }`}
+                        >
+                            Delete All
+                        </button>
+                    </div>
+                )}
                 {drafts.map((draft) => (
                     <div
                         key={draft._id}
@@ -195,7 +252,21 @@ export const Drafts: React.FC = () => {
                         }}
                     >
                         <div className="flex justify-between items-start gap-4">
-                            <div className="flex-1 min-w-0">
+                            <div className="flex items-start gap-3 flex-1 min-w-0">
+                                {activeTab === 'trash' && (
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedTrashIds.includes(draft._id)}
+                                        onChange={(event) => {
+                                            event.stopPropagation();
+                                            toggleTrashSelection(draft._id);
+                                        }}
+                                        onClick={(event) => event.stopPropagation()}
+                                        className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                        aria-label={`Select ${draft.title}`}
+                                    />
+                                )}
+                                <div className="flex-1 min-w-0">
                                 <h3 className="text-base font-medium text-gray-900 dark:text-white truncate">
                                     {draft.isEncrypted && draft.label ? draft.label : draft.title}
                                 </h3>
@@ -212,6 +283,7 @@ export const Drafts: React.FC = () => {
                                 <p className="mt-3 text-xs text-gray-400 dark:text-gray-500">
                                     {new Date(draft.updatedAt).toLocaleDateString()}
                                 </p>
+                            </div>
                             </div>
                             <div className="flex items-center gap-2">
                                 {activeTab === 'trash' ? (

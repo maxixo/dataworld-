@@ -18,11 +18,22 @@ export const MiniChart: React.FC<MiniChartProps> = ({
         value
     }));
 
+    // Helper to detect mobile screen
+    const isMobile = () => window.innerWidth < 768;
+
     if (type === 'bar') {
         return (
-            <ResponsiveContainer width="100%" height={120}>
-                <BarChart data={chartData} margin={{ top: 5, right: 0, left: 0, bottom: 5 }}>
-                    <Bar dataKey="value" fill={color} radius={[4, 4, 0, 0]} />
+            <ResponsiveContainer width="100%" height={isMobile() ? 80 : 120}>
+                <BarChart 
+                    data={chartData} 
+                    margin={{ top: 5, right: 0, left: 0, bottom: 5 }}
+                >
+                    <Bar 
+                        dataKey="value" 
+                        fill={color} 
+                        radius={[isMobile() ? 2 : 4, isMobile() ? 2 : 4, 0, 0]} 
+                        maxBarSize={isMobile() ? 15 : 25}
+                    />
                 </BarChart>
             </ResponsiveContainer>
         );
@@ -32,13 +43,16 @@ export const MiniChart: React.FC<MiniChartProps> = ({
     const isDashed = Math.random() > 0.5;
 
     return (
-        <ResponsiveContainer width="100%" height={120}>
-            <LineChart data={chartData} margin={{ top: 5, right: 0, left: 0, bottom: 5 }}>
+        <ResponsiveContainer width="100%" height={isMobile() ? 80 : 120}>
+            <LineChart 
+                data={chartData} 
+                margin={{ top: 5, right: 0, left: 0, bottom: 5 }}
+            >
                 <Line
                     type="monotone"
                     dataKey="value"
                     stroke={color}
-                    strokeWidth={2}
+                    strokeWidth={isMobile() ? 1.5 : 2}
                     dot={false}
                     strokeDasharray={isDashed ? "5 5" : "0"}
                 />
