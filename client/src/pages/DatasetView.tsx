@@ -36,6 +36,9 @@ export const DatasetView: React.FC = () => {
     const navigate = useNavigate();
     const chartRef = useRef<HTMLDivElement>(null);
 
+    // Helper to detect mobile screen
+    const isMobile = () => window.innerWidth < 768;
+
     const [dataset, setDataset] = useState<Dataset | null>(null);
     const [filteredData, setFilteredData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -128,20 +131,22 @@ export const DatasetView: React.FC = () => {
     }
 
     const getChartHeight = () => {
-        // Different heights for different chart types
+        // Different heights for different chart types and screen sizes
+        const mobile = isMobile();
         switch (chartType) {
             case 'pie':
-                return 700; // Increased from 500 to 700 for more space
+                return mobile ? 400 : 700; // Reduced from 700 to 400 on mobile
             case 'bar':
             case 'line':
             default:
-                return 400; // Bar and line charts can be more compact
+                return mobile ? 300 : 400; // Reduced from 400 to 300 on mobile
         }
     };
 
     const renderChart = (height?: number) => {
         const chartHeight = height || getChartHeight();
-        
+        const mobile = isMobile();
+
         if (!xAxis || !yAxis) {
             return (
                 <div className="text-center py-12 text-gray-500 dark:text-gray-400">
@@ -161,22 +166,28 @@ export const DatasetView: React.FC = () => {
                     <ResponsiveContainer width="100%" height={chartHeight}>
                         <BarChart 
                             data={chartData}
-                            margin={{ top: 20, right: 30, left: 60, bottom: 80 }}
+                            margin={{ 
+                                top: 20, 
+                                right: mobile ? 10 : 30, 
+                                left: mobile ? 30 : 60, 
+                                bottom: mobile ? 50 : 80 
+                            }}
                         >
                             <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
                             <XAxis
                                 dataKey={xAxis}
                                 stroke="#666"
-                                tick={{ fill: '#666', fontSize: 11 }}
-                                angle={-45}
+                                tick={{ fill: '#666', fontSize: mobile ? 9 : 11 }}
+                                angle={mobile ? -60 : -45}
                                 textAnchor="end"
-                                height={80}
-                                interval={0}
+                                height={mobile ? 60 : 80}
+                                interval={mobile ? 'preserveStartEnd' : 0}
                             />
                             <YAxis
                                 stroke="#666"
-                                tick={{ fill: '#666', fontSize: 11 }}
+                                tick={{ fill: '#666', fontSize: mobile ? 9 : 11 }}
                                 tickFormatter={(value) => Number(value).toLocaleString()}
+                                width={mobile ? 40 : 60}
                             />
                             <Tooltip
                                 contentStyle={{
@@ -205,9 +216,9 @@ export const DatasetView: React.FC = () => {
                             <Bar
                                 dataKey={yAxis}
                                 fill={customization.colors[0]}
-                                radius={[4, 4, 0, 0]}
+                                radius={[mobile ? 2 : 4, mobile ? 2 : 4, 0, 0]}
                                 animationDuration={customization.animate ? 1000 : 0}
-                                maxBarSize={60}
+                                maxBarSize={mobile ? 30 : 60}
                             />
                         </BarChart>
                     </ResponsiveContainer>
@@ -217,22 +228,28 @@ export const DatasetView: React.FC = () => {
                     <ResponsiveContainer width="100%" height={chartHeight}>
                         <LineChart 
                             data={chartData}
-                            margin={{ top: 20, right: 30, left: 60, bottom: 80 }}
+                            margin={{ 
+                                top: 20, 
+                                right: mobile ? 10 : 30, 
+                                left: mobile ? 30 : 60, 
+                                bottom: mobile ? 50 : 80 
+                            }}
                         >
                             <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
                             <XAxis
                                 dataKey={xAxis}
                                 stroke="#666"
-                                tick={{ fill: '#666', fontSize: 11 }}
-                                angle={-45}
+                                tick={{ fill: '#666', fontSize: mobile ? 9 : 11 }}
+                                angle={mobile ? -60 : -45}
                                 textAnchor="end"
-                                height={80}
-                                interval={0}
+                                height={mobile ? 60 : 80}
+                                interval={mobile ? 'preserveStartEnd' : 0}
                             />
                             <YAxis
                                 stroke="#666"
-                                tick={{ fill: '#666', fontSize: 11 }}
+                                tick={{ fill: '#666', fontSize: mobile ? 9 : 11 }}
                                 tickFormatter={(value) => Number(value).toLocaleString()}
+                                width={mobile ? 40 : 60}
                             />
                             <Tooltip
                                 contentStyle={{
@@ -262,9 +279,13 @@ export const DatasetView: React.FC = () => {
                                 type="monotone"
                                 dataKey={yAxis}
                                 stroke={customization.colors[0]}
-                                strokeWidth={2.5}
-                                dot={{ fill: customization.colors[0], strokeWidth: 2, r: 4 }}
-                                activeDot={{ r: 6, strokeWidth: 2 }}
+                                strokeWidth={mobile ? 2 : 2.5}
+                                dot={{ 
+                                    fill: customization.colors[0], 
+                                    strokeWidth: 2, 
+                                    r: mobile ? 3 : 4 
+                                }}
+                                activeDot={{ r: mobile ? 5 : 6, strokeWidth: 2 }}
                                 animationDuration={customization.animate ? 1000 : 0}
                             />
                         </LineChart>
@@ -336,13 +357,18 @@ export const DatasetView: React.FC = () => {
                         {/* Legend Below Chart */}
                         {customization.showLegend && (
                             <div 
-                                className="w-full px-4 overflow-y-auto" 
+                                className="w-full overflow-y-auto" 
                                 style={{ 
                                     height: legendSpace,
-                                    paddingTop: '20px'
+                                    paddingTop: '20px',
+                                    paddingLeft: mobile ? '8px' : '16px',
+                                    paddingRight: mobile ? '8px' : '16px'
                                 }}
                             >
-                                <div className="flex flex-wrap justify-center gap-2">
+                                <div className={mobile 
+                                    ? "grid grid-cols-1 gap-2" 
+                                    : "flex flex-wrap justify-center gap-2"
+                                }>
                                     {pieChartData.map((item, index) => {
                                         const total = pieChartData.reduce((sum, d) => sum + d.value, 0);
                                         const percentage = ((item.value / total) * 100).toFixed(1);
@@ -352,8 +378,8 @@ export const DatasetView: React.FC = () => {
                                                 key={`legend-${index}`}
                                                 className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg text-sm shadow-sm hover:shadow-md transition-shadow"
                                                 style={{
-                                                    flex: '0 1 auto',
-                                                    minWidth: '180px',
+                                                    flex: mobile ? 'none' : '0 1 auto',
+                                                    minWidth: mobile ? '100%' : '180px',
                                                     maxWidth: '300px'
                                                 }}
                                             >
@@ -364,7 +390,7 @@ export const DatasetView: React.FC = () => {
                                                     }}
                                                 />
                                                 <div className="flex-1 min-w-0">
-                                                    <div className="text-gray-700 dark:text-gray-300 truncate font-medium" title={String(item.name)}>
+                                                    <div className="text-gray-700 dark:text-gray-300 truncate font-medium text-xs md:text-sm" title={String(item.name)}>
                                                         {item.name}
                                                     </div>
                                                     <div className="text-xs text-gray-500 dark:text-gray-400">
