@@ -57,6 +57,7 @@ export const Landing: React.FC = () => {
               <a className="text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:text-primary transition-colors" href="#features">Features</a>
               <a className="text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:text-primary transition-colors" href="#solutions">Solutions</a>
               <a className="text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:text-primary transition-colors" href="#pricing">Pricing</a>
+              <Link className="text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:text-primary transition-colors" to="/faq">FAQ</Link>
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
@@ -136,6 +137,14 @@ export const Landing: React.FC = () => {
                 Pricing
                 <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
               </a>
+              <Link
+                className="flex items-center justify-between min-h-[48px] rounded-lg px-4 text-sm font-medium text-text-main-light dark:text-text-main-dark hover:bg-background-light dark:hover:bg-gray-800 transition-colors"
+                to="/faq"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                FAQ
+                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+              </Link>
             </div>
             <div className="border-t border-border-light dark:border-border-dark p-4 flex flex-col gap-3">
               <Link

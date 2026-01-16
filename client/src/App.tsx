@@ -16,6 +16,7 @@ import { UserProfile } from './pages/UserProfile';
 import { Files } from './pages/Files';
 import { Drafts } from './pages/Drafts';
 import { DraftEditor } from './pages/DraftEditor';
+import { Faq } from './pages/Faq';
 
 
 // Protected Route Component - redirects to landing if not authenticated
@@ -111,6 +112,12 @@ function App() {
                 <PrivateRoute>
                   <DraftEditor />
                 </PrivateRoute>
+              }
+            />
+            <Route
+              path="/faq"
+              element={
+                <Faq />
               }
             />
             {/* Redirect unknown routes to landing */}

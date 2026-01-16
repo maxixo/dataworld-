@@ -18,6 +18,7 @@ export const Header: React.FC<HeaderProps> = ({ username, onLogout }) => {
         { name: 'Dashboard', path: '/app' },
         { name: 'Datasets', path: '/files' },
         { name: 'Drafts', path: '/drafts' },
+        { name: 'FAQ', path: '/faq' },
         { name: 'Settings', path: '/settings' }
     ];
 
