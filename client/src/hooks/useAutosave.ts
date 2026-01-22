@@ -19,6 +19,7 @@ interface UseAutosaveOptions {
     password: string | null;
     onSaved?: () => void;
     onError?: (error: string) => void;
+    onDraftCreated?: (draftId: string) => void;
 }
 
 interface AutosaveState {
@@ -33,7 +34,7 @@ export const useAutosave = (
     content: string,
     options: UseAutosaveOptions
 ): AutosaveState => {
-    const { draftId, isEncrypted, password, onSaved, onError } = options;
+    const { draftId, isEncrypted, password, onSaved, onError, onDraftCreated } = options;
     
     const [status, setStatus] = useState<AutosaveState['status']>('idle');
     const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
@@ -42,6 +43,11 @@ export const useAutosave = (
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isSavingRef = useRef(false);
     const previousContentRef = useRef({ title: '', content: '' });
+    const draftIdRef = useRef<string | undefined>(draftId);
+
+    useEffect(() => {
+        draftIdRef.current = draftId;
+    }, [draftId]);
 
     // Debounced save function
     const saveDraft = useCallback(async () => {
@@ -91,9 +97,11 @@ export const useAutosave = (
                     iv: encrypted.iv
                 };
 
-                if (draftId) {
+                const currentDraftId = draftIdRef.current;
+
+                if (currentDraftId) {
                     // Update existing encrypted draft
-                    await axios.put(`${API_BASE_URL}/drafts/${draftId}`, draftData, {
+                    await axios.put(`${API_BASE_URL}/drafts/${currentDraftId}`, draftData, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                 } else {
@@ -101,15 +109,23 @@ export const useAutosave = (
                     const response = await axios.post(`${API_BASE_URL}/drafts`, draftData, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
-                    // The parent component should handle the new draft ID
+                    const newDraftId = response.data?._id;
+                    if (newDraftId) {
+                        draftIdRef.current = newDraftId;
+                        if (onDraftCreated) {
+                            onDraftCreated(newDraftId);
+                        }
+                    }
                 }
             } else {
                 // Save unencrypted draft
                 const draftData = { title, content };
 
-                if (draftId) {
+                const currentDraftId = draftIdRef.current;
+
+                if (currentDraftId) {
                     // Update existing draft
-                    await axios.put(`${API_BASE_URL}/drafts/${draftId}`, draftData, {
+                    await axios.put(`${API_BASE_URL}/drafts/${currentDraftId}`, draftData, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                 } else {
@@ -117,7 +133,13 @@ export const useAutosave = (
                     const response = await axios.post(`${API_BASE_URL}/drafts`, draftData, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
-                    // The parent component should handle the new draft ID
+                    const newDraftId = response.data?._id;
+                    if (newDraftId) {
+                        draftIdRef.current = newDraftId;
+                        if (onDraftCreated) {
+                            onDraftCreated(newDraftId);
+                        }
+                    }
                 }
             }
 
@@ -150,7 +172,7 @@ export const useAutosave = (
         } finally {
             isSavingRef.current = false;
         }
-    }, [title, content, draftId, isEncrypted, password, onSaved, onError]);
+    }, [title, content, isEncrypted, password, onSaved, onError, onDraftCreated]);
 
     // Trigger debounced save when title or content changes
     useEffect(() => {
