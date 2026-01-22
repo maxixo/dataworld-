@@ -22,6 +22,7 @@ export const DraftEditor: React.FC = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
+    const [draftId, setDraftId] = useState<string | undefined>(id);
     
     const [title, setTitle] = useState('Untitled Draft');
     const [content, setContent] = useState('');
@@ -54,6 +55,7 @@ export const DraftEditor: React.FC = () => {
     const wordCountValid = wordCount <= maxWords;
 
     useEffect(() => {
+        setDraftId(id);
         if (id) {
             fetchDraft();
         }
@@ -79,9 +81,16 @@ export const DraftEditor: React.FC = () => {
         }
     };
 
+    const applyDraftId = (newDraftId: string, updateRoute: boolean = true) => {
+        setDraftId(newDraftId);
+        if (updateRoute && id !== newDraftId) {
+            navigate(`/draft/${newDraftId}`, { replace: true });
+        }
+    };
+
     // Initialize autosave hook
     const autosave = useAutosave(title, content, {
-        draftId: id,
+        draftId,
         isEncrypted: isEncrypted && !!decryptionPasswordRef.current,
         password: decryptionPasswordRef.current || password,
         onSaved: () => {
@@ -90,6 +99,9 @@ export const DraftEditor: React.FC = () => {
         },
         onError: (errorMsg) => {
             setError(errorMsg);
+        },
+        onDraftCreated: (newDraftId) => {
+            applyDraftId(newDraftId);
         }
     });
 
@@ -204,28 +216,36 @@ export const DraftEditor: React.FC = () => {
                     iv: encrypted.iv
                 };
 
-                if (id) {
-                    await axios.put(`${API_BASE_URL}/drafts/${id}`, draftData, {
+                if (draftId) {
+                    await axios.put(`${API_BASE_URL}/drafts/${draftId}`, draftData, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                 } else {
-                    await axios.post(`${API_BASE_URL}/drafts`, draftData, {
+                    const response = await axios.post(`${API_BASE_URL}/drafts`, draftData, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
+                    const newDraftId = response.data?._id;
+                    if (newDraftId) {
+                        applyDraftId(newDraftId);
+                    }
                     setDraftCreated(true);
                 }
             } else {
                 // Save normally for unencrypted drafts
                 const draftData = { title, content };
 
-                if (id) {
-                    await axios.put(`${API_BASE_URL}/drafts/${id}`, draftData, {
+                if (draftId) {
+                    await axios.put(`${API_BASE_URL}/drafts/${draftId}`, draftData, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                 } else {
-                    await axios.post(`${API_BASE_URL}/drafts`, draftData, {
+                    const response = await axios.post(`${API_BASE_URL}/drafts`, draftData, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
+                    const newDraftId = response.data?._id;
+                    if (newDraftId) {
+                        applyDraftId(newDraftId);
+                    }
                     setDraftCreated(true);
                 }
             }
@@ -263,15 +283,18 @@ export const DraftEditor: React.FC = () => {
             const token = localStorage.getItem('token');
             
             // If this is a new draft (no id), save it first
-            let draftId = id;
-            if (!draftId) {
+            let currentDraftId = draftId;
+            if (!currentDraftId) {
                 // Save the draft first to get an ID
                 const response = await axios.post(
                     `${API_BASE_URL}/drafts`,
                     { title, content },
                     { headers: { 'Authorization': `Bearer ${token}` } }
                 );
-                draftId = response.data._id;
+                currentDraftId = response.data._id;
+                if (currentDraftId) {
+                    setDraftId(currentDraftId);
+                }
             }
             
             // Encrypt the draft with the custom label
@@ -287,7 +310,7 @@ export const DraftEditor: React.FC = () => {
                 iv: encrypted.iv
             };
             
-            await axios.put(`${API_BASE_URL}/drafts/${draftId}`, draftData, {
+            await axios.put(`${API_BASE_URL}/drafts/${currentDraftId}`, draftData, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
