@@ -10,39 +10,63 @@ dotenv.config();
 
 const isProduction = process.env.NODE_ENV === 'production';
 const app = express();
+const defaultProductionOrigins = ['https://dataworld-client.vercel.app'];
 
-if (isProduction) {
-  app.set('trust proxy', 1);
-}
+const parseAllowedOrigins = () => {
+  const configuredOrigins = (process.env.CORS_ALLOWED_ORIGINS || '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
 
-const allowedOrigins = [
-  'https://dataworld-server-production.up.railway.app',
-  'https://dataworld-production.up.railway.app',
-  'https://dataworld-xx.vercel.app',
-  'https://dataworld-client-fx4l4dktk-maxixos-projects.vercel.app',
-];
+  if (process.env.FRONTEND_URL) {
+    configuredOrigins.push(process.env.FRONTEND_URL.trim());
+  }
 
-if (!isProduction) {
-  allowedOrigins.push(
+  const origins = new Set(configuredOrigins);
+
+  [
     'http://localhost:3000',
     'http://localhost:5173',
     'http://localhost:5174',
     'http://127.0.0.1:3000',
     'http://127.0.0.1:5173',
-    'http://127.0.0.1:5174'
-  );
+    'http://127.0.0.1:5174',
+  ].forEach((origin) => {
+    if (!isProduction) {
+      origins.add(origin);
+    }
+  });
+
+  if (isProduction) {
+    defaultProductionOrigins.forEach((origin) => origins.add(origin));
+  }
+
+  return Array.from(origins);
+};
+
+if (isProduction) {
+  app.set('trust proxy', 1);
 }
 
-app.use(cors({
+const allowedOrigins = parseAllowedOrigins();
+const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
       return;
     }
+
+    console.warn(`Blocked CORS request from origin: ${origin}`);
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
-}));
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 204,
+};
+
+app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
 
 
 // Body parsing middleware
@@ -66,6 +90,10 @@ app.use('/api/drafts', draftRoutes);
 // Root route
 app.get('/', (req, res) => {
     res.send('DataWorld API is running');
+});
+
+app.get('/api/health', (req, res) => {
+    res.status(200).json({ status: 'ok' });
 });
 
 // Test middleware route

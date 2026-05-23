@@ -13,16 +13,20 @@ if (!process.env.JWT_SECRET) {
     console.error('Please add JWT_SECRET to your .env file');
     process.exit(1);
 }
-const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/dataworld';
+if (isNaN(PORT)) {
+    console.error('FATAL ERROR: PORT must be a valid number.');
+    process.exit(1);
+}
+if (process.env.NODE_ENV === 'production' && !process.env.MONGO_URI) {
+    console.warn('WARNING: MONGO_URI is not set. Production will fall back to localhost MongoDB.');
+}
 /**
  * Connects to MongoDB database with DNS configuration and SRV record resolution
  * Handles connection errors and provides detailed logging
  */
 const connectDB = async (retries = 5, delay = 5000) => {
-    // Get MongoDB URI from environment variables or use default
-    const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/dataworld';
-    // Remove the manual SRV lookup - let MongoDB driver handle DNS resolution
-    // The driver has built-in DNS resolution that's more robust
     for (let i = 0; i < retries; i++) {
         try {
             console.log(`Attempting to connect to MongoDB... (Attempt ${i + 1}/${retries})`);
@@ -55,4 +59,5 @@ const connectDB = async (retries = 5, delay = 5000) => {
 connectDB();
 // Listen on 0.0.0.0 to accept connections from any network interface
 app_1.default.listen(PORT, '0.0.0.0', () => {
+    console.log(`API server listening on port ${PORT}`);
 });

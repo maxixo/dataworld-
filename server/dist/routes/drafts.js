@@ -12,6 +12,8 @@ router.post('/', draftController_1.createDraft);
 router.get('/', draftController_1.getDrafts);
 // Get all locked notes
 router.get('/locked', draftController_1.getAllLockedNotes);
+// Permanently delete multiple drafts from trash
+router.post('/trash/bulk-delete', draftController_1.bulkPermanentDeleteDrafts);
 // Get a single draft by ID
 router.get('/:id', draftController_1.getDraft);
 // Update a draft

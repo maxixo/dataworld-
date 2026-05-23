@@ -1,6 +1,5 @@
 import axios from 'axios';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+import { API_BASE_URL } from '../config/api';
 
 export interface AuthResponse {
   user: {
@@ -15,14 +14,7 @@ export interface AuthResponse {
   token: string;
 }
 
-/**
- * Service for handling Google authentication (client-side Firebase only)
- */
 class GoogleAuthService {
-  /**
-   * Send Google user info to backend for authentication
-   * Backend will create/login user and return JWT
-   */
   async authenticateWithGoogle(user: {
     email: string;
     displayName: string | null;
@@ -30,8 +22,8 @@ class GoogleAuthService {
     uid: string;
   }): Promise<AuthResponse> {
     try {
-const response = await axios.post<AuthResponse>(
-        `${API_URL}/api/auth/google`,
+      const response = await axios.post<AuthResponse>(
+        `${API_BASE_URL}/auth/google`,
         {
           email: user.email,
           displayName: user.displayName,
@@ -40,23 +32,21 @@ const response = await axios.post<AuthResponse>(
         }
       );
 
-return response.data;
+      return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const message = error.response?.data?.message || 'Google authentication failed';
-        console.error('❌ Backend error:', message);
+        console.error('Backend error:', message);
         throw new Error(message);
       }
+
       throw new Error('Google authentication failed');
     }
   }
 
-  /**
-   * Verify JWT token validity
-   */
   async verifyToken(token: string): Promise<boolean> {
     try {
-      await axios.get(`${API_URL}/api/auth/verify`, {
+      await axios.get(`${API_BASE_URL}/auth/verify`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -67,13 +57,10 @@ return response.data;
     }
   }
 
-  /**
-   * Logout user
-   */
   async logout(token: string): Promise<void> {
     try {
       await axios.post(
-        `${API_URL}/api/auth/logout`,
+        `${API_BASE_URL}/auth/logout`,
         {},
         {
           headers: {
