@@ -1,13 +1,7 @@
-import { Request, Response } from 'express';
-import { Types } from 'mongoose';
-import { Dataset, IDataset } from '../models/Dataset';
+import { Response } from 'express';
+import { datasetRepository } from '../database';
 import { AuthRequest } from '../middleware/auth';
 import { handleError } from '../utils/errorHandler';
-
-// Define proper document type
-interface DatasetDocument extends IDataset {
-  _id: Types.ObjectId;
-}
 
 export const uploadDataset = async (req: AuthRequest, res: Response) => {
     try {
@@ -18,11 +12,9 @@ export const uploadDataset = async (req: AuthRequest, res: Response) => {
             rowCount,
             fileName,
             fileSize,
-            // encrypted upload fields
             encryptedBlobBase64,
             salt,
             iv,
-            isEncrypted,
             label,
             encryptedFileName,
             encryptedFileNameSalt,
@@ -31,8 +23,12 @@ export const uploadDataset = async (req: AuthRequest, res: Response) => {
         } = req.body;
         const userId = req.user?.userId;
 
-        const newDataset: Partial<IDataset> & { user?: string } = {
-            user: userId,
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        const newDataset: any = {
+            userId,
             name,
             fileName: fileName || name,
             fileSize: fileSize || 0,
@@ -40,7 +36,6 @@ export const uploadDataset = async (req: AuthRequest, res: Response) => {
         };
 
         if (encryptedBlobBase64) {
-            // Store encrypted blob and metadata
             const buffer = Buffer.from(encryptedBlobBase64, 'base64');
             newDataset.encryptedBlob = buffer;
             newDataset.salt = salt;
@@ -52,13 +47,12 @@ export const uploadDataset = async (req: AuthRequest, res: Response) => {
             newDataset.encryptedFileNameIv = encryptedFileNameIv;
             newDataset.mimeType = mimeType;
         } else {
-            // Store parsed data
             newDataset.data = data;
             newDataset.columns = columns;
             newDataset.rowCount = rowCount;
         }
 
-        const savedDataset = await Dataset.create(newDataset) as DatasetDocument;
+        const savedDataset = await datasetRepository.create(newDataset);
 
         res.json(savedDataset);
     } catch (err) {
@@ -66,49 +60,73 @@ export const uploadDataset = async (req: AuthRequest, res: Response) => {
     }
 };
 
-// Consolidated endpoint to get datasets with optional details
 export const getDatasets = async (req: AuthRequest, res: Response) => {
     try {
         const userId = req.user?.userId;
         const includeDetails = req.query.details === 'true';
-        
-        // Select fields based on request
-        const select = includeDetails 
-            ? 'name fileName fileSize rowCount columns createdAt isEncrypted label'
-            : 'name fileName fileSize isEncrypted label createdAt';
-        
-        let query = Dataset.find({ user: userId })
-            .select(select)
-            .sort({ createdAt: -1 });
-        
-        // Limit results for detailed queries
-        if (includeDetails) {
-            query = query.limit(50);
+
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
         }
-        
-        const datasets = includeDetails
-            ? await query.lean<DatasetDocument[]>()
-            : await query.lean<Pick<IDataset, 'name' | 'fileName' | 'fileSize' | 'isEncrypted' | 'label' | 'createdAt'>[]>();
-        
+
+        const datasets = await datasetRepository.listByUser(userId, {
+            includeDetails,
+            limit: includeDetails ? 50 : undefined,
+        });
+
         res.json(datasets);
     } catch (err) {
         handleError(res, err, 'getDatasets');
     }
 };
 
+export const getDatasetHistory = async (req: AuthRequest, res: Response) => {
+    try {
+        const userId = req.user?.userId;
+
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        const datasets = await datasetRepository.listByUser(userId, {
+            includeDetails: true,
+            limit: 50,
+        });
+
+        res.json(
+            datasets.map((dataset) => ({
+                _id: dataset.id,
+                id: dataset.id,
+                name: dataset.name,
+                fileName: dataset.fileName,
+                fileSize: dataset.fileSize ?? 0,
+                rowCount: dataset.rowCount ?? 0,
+                columns: Array.isArray(dataset.columns) ? dataset.columns : [],
+                createdAt: dataset.createdAt,
+                isEncrypted: dataset.isEncrypted,
+                label: dataset.label ?? null,
+            }))
+        );
+    } catch (err) {
+        handleError(res, err, 'getDatasetHistory');
+    }
+};
+
 export const getDatasetById = async (req: AuthRequest, res: Response) => {
     try {
         const { id } = req.params;
-
         const userId = req.user?.userId;
 
-        const dataset = await Dataset.findById(id).lean<DatasetDocument | null>();
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        const dataset = await datasetRepository.findById(id);
         if (!dataset) {
             return res.status(404).json({ message: 'Dataset not found' });
         }
 
-        // Check ownership - users can only access their own datasets
-        if (dataset && dataset.user.toString() !== userId) {
+        if (dataset.userId !== userId) {
             return res.status(403).json({ message: 'Unauthorized access to dataset' });
         }
 
@@ -118,20 +136,22 @@ export const getDatasetById = async (req: AuthRequest, res: Response) => {
     }
 };
 
-// Return encrypted blob and metadata (base64) for client-side decryption
 export const getDatasetBlob = async (req: AuthRequest, res: Response) => {
     try {
         const { id } = req.params;
-
         const userId = req.user?.userId;
 
-        const dataset = await Dataset.findById(id).lean<DatasetDocument | null>();
-        
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        const dataset = await datasetRepository.findById(id);
+
         if (!dataset) {
             return res.status(404).json({ message: 'Dataset not found' });
         }
 
-        if (dataset.user.toString() !== userId) {
+        if (dataset.userId !== userId) {
             return res.status(403).json({ message: 'Unauthorized' });
         }
 
@@ -139,8 +159,6 @@ export const getDatasetBlob = async (req: AuthRequest, res: Response) => {
             return res.status(400).json({ message: 'No encrypted blob available' });
         }
 
-        // If client requests raw binary, return metadata in JSON body instead of headers
-        // This ensures reliable metadata transmission (headers can be lost/modified by proxies)
         const raw = req.query.raw === '1' || req.query.raw === 'true';
         if (raw) {
             const encryptedBase64 = dataset.encryptedBlob.toString('base64');

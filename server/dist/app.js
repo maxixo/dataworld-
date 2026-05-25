@@ -3,17 +3,37 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+require("dotenv/config");
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
-const dotenv_1 = __importDefault(require("dotenv"));
 const auth_1 = __importDefault(require("./routes/auth"));
 const datasets_1 = __importDefault(require("./routes/datasets"));
 const drafts_1 = __importDefault(require("./routes/drafts"));
 const error_1 = require("./middleware/error");
-dotenv_1.default.config();
 const isProduction = process.env.NODE_ENV === 'production';
 const app = (0, express_1.default)();
-const defaultProductionOrigins = ['https://dataworld-client.vercel.app'];
+const parseTrustProxy = () => {
+    const rawTrustProxy = process.env.TRUST_PROXY;
+    if (rawTrustProxy === undefined) {
+        return isProduction ? 1 : false;
+    }
+    if (rawTrustProxy === 'true') {
+        return true;
+    }
+    if (rawTrustProxy === 'false') {
+        return false;
+    }
+    const parsedTrustProxy = Number(rawTrustProxy);
+    return Number.isInteger(parsedTrustProxy) ? parsedTrustProxy : rawTrustProxy;
+};
+const parseOriginPatterns = () => (process.env.CORS_ALLOWED_ORIGIN_PATTERNS || '')
+    .split(',')
+    .map((pattern) => pattern.trim())
+    .filter(Boolean);
+const matchesOriginPattern = (origin, pattern) => {
+    const escapedPattern = pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
+    return new RegExp(`^${escapedPattern}$`).test(origin);
+};
 const parseAllowedOrigins = () => {
     const configuredOrigins = (process.env.CORS_ALLOWED_ORIGINS || '')
         .split(',')
@@ -35,18 +55,20 @@ const parseAllowedOrigins = () => {
             origins.add(origin);
         }
     });
-    if (isProduction) {
-        defaultProductionOrigins.forEach((origin) => origins.add(origin));
+    if (isProduction && origins.size === 0) {
+        console.warn('No production CORS origins configured. Set FRONTEND_URL or CORS_ALLOWED_ORIGINS.');
     }
     return Array.from(origins);
 };
-if (isProduction) {
-    app.set('trust proxy', 1);
-}
+app.set('trust proxy', parseTrustProxy());
 const allowedOrigins = parseAllowedOrigins();
+const allowedOriginPatterns = parseOriginPatterns();
 const corsOptions = {
     origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
+        const originAllowedByPattern = origin
+            ? allowedOriginPatterns.some((pattern) => matchesOriginPattern(origin, pattern))
+            : false;
+        if (!origin || allowedOrigins.includes(origin) || originAllowedByPattern) {
             callback(null, true);
             return;
         }
@@ -65,6 +87,9 @@ app.use(express_1.default.json({ limit: '50mb' }));
 app.use(express_1.default.urlencoded({ limit: '50mb', extended: true }));
 // CSP middleware - MUST come BEFORE routes
 app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     res.setHeader('Content-Security-Policy', "default-src 'self'; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: https:; connect-src 'self' https:;");
     next();
 });

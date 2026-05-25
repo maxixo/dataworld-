@@ -9,6 +9,7 @@ const auth_1 = require("../middleware/auth"); // We need to create this middlewa
 const router = express_1.default.Router();
 router.post('/', auth_1.auth, datasetController_1.uploadDataset);
 router.get('/', auth_1.auth, datasetController_1.getDatasets);
+router.get('/history', auth_1.auth, datasetController_1.getDatasetHistory);
 router.get('/:id', auth_1.auth, datasetController_1.getDatasetById);
 router.get('/:id/blob', auth_1.auth, datasetController_1.getDatasetBlob);
 exports.default = router;
