@@ -3,11 +3,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.login = exports.googleAuth = exports.signup = void 0;
-const User_1 = require("../models/User");
+exports.updateProfile = exports.getProfile = exports.logout = exports.verifyToken = exports.login = exports.googleAuth = exports.signup = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const express_validator_1 = require("express-validator");
+const database_1 = require("../database");
+const errorHandler_1 = require("../utils/errorHandler");
 const isProduction = process.env.NODE_ENV === 'production';
 const setAuthCookie = (res, token, maxAgeMs) => {
     res.cookie('authToken', token, {
@@ -17,7 +18,6 @@ const setAuthCookie = (res, token, maxAgeMs) => {
         maxAge: maxAgeMs
     });
 };
-// Initialize Firebase Admin if credentials are provided
 /**
  * @desc    Register user
  * @route   POST /api/auth/signup
@@ -29,26 +29,20 @@ const signup = async (req, res) => {
         return res.status(400).json({ errors: errors.array() });
     }
     try {
-        // NoSQL Injection Protection: Explicitly cast to string and trim
         const username = String(req.body.username).trim();
         const email = String(req.body.email).toLowerCase().trim();
         const password = String(req.body.password);
-        // Check if user exists
-        let user = await User_1.User.findOne({ email });
+        let user = await database_1.userRepository.findByEmail(email);
         if (user) {
             return res.status(400).json({ message: 'User already exists' });
         }
-        // Hash password
         const salt = await bcryptjs_1.default.genSalt(10);
         const hashedPassword = await bcryptjs_1.default.hash(password, salt);
-        // Create user
-        user = new User_1.User({
+        user = await database_1.userRepository.create({
             username,
             email,
             password: hashedPassword
         });
-        await user.save();
-        // Create token
         const payload = {
             user: {
                 userId: user.id,
@@ -74,54 +68,39 @@ exports.signup = signup;
 const googleAuth = async (req, res) => {
     try {
         const { email, displayName, photoURL, uid } = req.body;
-        // Validate required fields
         if (!email || !uid) {
             return res.status(400).json({ message: 'Email and UID are required' });
         }
-        // Sanitize inputs
         const sanitizedEmail = String(email).toLowerCase().trim();
         const sanitizedUid = String(uid).trim();
-        // Check if user exists
-        let user = await User_1.User.findOne({
-            $or: [
-                { email: sanitizedEmail },
-                { googleId: sanitizedUid }
-            ]
-        });
+        let user = await database_1.userRepository.findByEmailOrGoogleId(sanitizedEmail, sanitizedUid);
         if (!user) {
-            // Create new user
             const username = displayName
                 ? String(displayName).split(' ')[0].trim()
                 : sanitizedEmail.split('@')[0];
-            user = new User_1.User({
+            user = await database_1.userRepository.create({
                 username,
                 email: sanitizedEmail,
                 googleId: sanitizedUid,
                 picture: photoURL || undefined,
-                password: '', // No password for OAuth users
+                password: '',
             });
-            await user.save();
         }
         else {
-            // Update existing user with Google info if needed
-            let updated = false;
+            const updates = {};
             if (!user.googleId) {
-                user.googleId = sanitizedUid;
-                updated = true;
+                updates.googleId = sanitizedUid;
             }
             if (!user.picture && photoURL) {
-                user.picture = photoURL;
-                updated = true;
+                updates.picture = photoURL;
             }
             if (!user.username && displayName) {
-                user.username = displayName;
-                updated = true;
+                updates.username = displayName;
             }
-            if (updated) {
-                await user.save();
+            if (Object.keys(updates).length > 0) {
+                user = await database_1.userRepository.update(user.id, updates) || user;
             }
         }
-        // Create JWT
         const tokenPayload = {
             user: {
                 userId: user.id,
@@ -129,8 +108,7 @@ const googleAuth = async (req, res) => {
                 username: user.username
             }
         };
-        const token = jsonwebtoken_1.default.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: '7d' } // Extended for better UX
-        );
+        const token = jsonwebtoken_1.default.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: '7d' });
         setAuthCookie(res, token, 7 * 24 * 60 * 60 * 1000);
         res.json({
             token,
@@ -145,7 +123,7 @@ const googleAuth = async (req, res) => {
         });
     }
     catch (err) {
-        console.error('❌ Google auth error:', err);
+        console.error('Google auth error:', err);
         res.status(500).json({
             message: 'Google authentication failed',
             error: process.env.NODE_ENV === 'development' ? err.message : undefined
@@ -164,15 +142,12 @@ const login = async (req, res) => {
         return res.status(400).json({ errors: errors.array() });
     }
     try {
-        // NoSQL Injection Protection: Force strings
         const email = String(req.body.email).toLowerCase().trim();
         const password = String(req.body.password);
-        // Check user (explicitly select password since it's excluded by default)
-        let user = await User_1.User.findOne({ email }).select('+password');
+        const user = await database_1.userRepository.findByEmail(email, { includePassword: true });
         if (!user) {
             return res.status(400).json({ message: 'Invalid Credentials' });
         }
-        // Validate password (OAuth users won't have a password)
         if (!user.password) {
             return res.status(400).json({ message: 'Please use Google login for this account' });
         }
@@ -180,7 +155,6 @@ const login = async (req, res) => {
         if (!isMatch) {
             return res.status(400).json({ message: 'Invalid Credentials' });
         }
-        // Return token
         const payload = {
             user: {
                 userId: user.id,
@@ -198,3 +172,76 @@ const login = async (req, res) => {
     }
 };
 exports.login = login;
+const verifyToken = async (req, res) => {
+    res.status(200).json({ valid: true, user: req.user });
+};
+exports.verifyToken = verifyToken;
+const logout = async (_req, res) => {
+    res.clearCookie('authToken', {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax'
+    });
+    res.status(200).json({ message: 'Logged out successfully' });
+};
+exports.logout = logout;
+const getProfile = async (req, res) => {
+    try {
+        const userId = req.user?.userId;
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+        const user = await database_1.userRepository.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.json({
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            picture: user.picture,
+            googleId: user.googleId,
+            createdAt: user.createdAt
+        });
+    }
+    catch (err) {
+        (0, errorHandler_1.handleError)(res, err, 'getProfile');
+    }
+};
+exports.getProfile = getProfile;
+const updateProfile = async (req, res) => {
+    const errors = (0, express_validator_1.validationResult)(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+    try {
+        const userId = req.user?.userId;
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+        const username = typeof req.body.username === 'string' ? req.body.username.trim() : undefined;
+        const email = typeof req.body.email === 'string' ? req.body.email.toLowerCase().trim() : undefined;
+        const updatedUser = await database_1.userRepository.update(userId, {
+            ...(username ? { username } : {}),
+            ...(email ? { email } : {}),
+        });
+        if (!updatedUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.json({
+            message: 'Profile updated successfully',
+            user: {
+                id: updatedUser.id,
+                username: updatedUser.username,
+                email: updatedUser.email,
+                picture: updatedUser.picture,
+                googleId: updatedUser.googleId,
+                createdAt: updatedUser.createdAt
+            }
+        });
+    }
+    catch (err) {
+        (0, errorHandler_1.handleError)(res, err, 'updateProfile');
+    }
+};
+exports.updateProfile = updateProfile;

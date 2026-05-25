@@ -1,7 +1,8 @@
 import express from 'express';
 import { body } from 'express-validator';
 import { authRateLimiter } from '../middleware/rateLimiter';
-import { signup, login, googleAuth } from '../controllers/authController';
+import { auth } from '../middleware/auth';
+import { signup, login, googleAuth, verifyToken, logout, getProfile, updateProfile } from '../controllers/authController';
 
 const router = express.Router();
 
@@ -47,5 +48,24 @@ router.post(
  * @access  Public
  */
 router.post('/google', authRateLimiter, googleAuth);
+router.get('/verify', auth, verifyToken);
+router.post('/logout', auth, logout);
+router.get('/profile', auth, getProfile);
+router.put(
+    '/profile',
+    auth,
+    [
+        body('username')
+            .optional()
+            .trim()
+            .notEmpty()
+            .matches(/^[A-Za-z0-9 _-]+$/),
+        body('email')
+            .optional()
+            .isEmail()
+            .normalizeEmail()
+    ],
+    updateProfile
+);
 
 export default router;

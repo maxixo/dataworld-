@@ -1,25 +1,28 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.permanentDeleteDraft = exports.restoreDraft = exports.deleteDraft = exports.updateDraft = exports.getDraft = exports.getAllLockedNotes = exports.getDrafts = exports.createDraft = void 0;
-const Draft_1 = require("../models/Draft");
-// Create a new draft
+exports.bulkPermanentDeleteDrafts = exports.permanentDeleteDraft = exports.restoreDraft = exports.deleteDraft = exports.updateDraft = exports.getDraft = exports.getAllLockedNotes = exports.getDrafts = exports.createDraft = void 0;
+const database_1 = require("../database");
+const getAuthenticatedUserId = (req) => req.user?.userId;
 const createDraft = async (req, res) => {
     try {
         const { title, content, label } = req.body;
-        // Validate word count (max 1000 words)
-        const wordCount = content.trim().split(/\s+/).length;
+        const userId = getAuthenticatedUserId(req);
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+        const safeContent = content || '';
+        const wordCount = safeContent.trim().length === 0 ? 0 : safeContent.trim().split(/\s+/).length;
         if (wordCount > 1000) {
             return res.status(400).json({
                 message: 'Draft exceeds maximum word count of 1000 words'
             });
         }
-        const draft = new Draft_1.Draft({
-            user: req.user?.userId,
+        const draft = await database_1.draftRepository.create({
+            userId,
             title: title || 'Untitled Draft',
-            content: content || '',
+            content: safeContent,
             label: label || null
         });
-        await draft.save();
         res.status(201).json(draft);
     }
     catch (error) {
@@ -27,24 +30,15 @@ const createDraft = async (req, res) => {
     }
 };
 exports.createDraft = createDraft;
-// Get all drafts for a user
 const getDrafts = async (req, res) => {
     try {
-        const { type } = req.query; // 'drafts', 'locked-notes', or 'trash'
-        let query = { user: req.user?.userId };
-        if (type === 'trash') {
-            query.isDeleted = true;
+        const { type } = req.query;
+        const userId = getAuthenticatedUserId(req);
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
         }
-        else if (type === 'locked-notes') {
-            query.isEncrypted = true;
-            query.isDeleted = false;
-        }
-        else {
-            // Default: drafts
-            query.isDeleted = false;
-            query.isEncrypted = false;
-        }
-        const drafts = await Draft_1.Draft.find(query).sort({ updatedAt: -1 });
+        const listType = type === 'trash' || type === 'locked-notes' ? type : 'drafts';
+        const drafts = await database_1.draftRepository.listByUser(userId, listType);
         res.json(drafts);
     }
     catch (error) {
@@ -52,14 +46,13 @@ const getDrafts = async (req, res) => {
     }
 };
 exports.getDrafts = getDrafts;
-// Get all locked notes for a user
 const getAllLockedNotes = async (req, res) => {
     try {
-        const drafts = await Draft_1.Draft.find({
-            user: req.user?.userId,
-            isEncrypted: true,
-            isDeleted: false
-        }).sort({ updatedAt: -1 });
+        const userId = getAuthenticatedUserId(req);
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+        const drafts = await database_1.draftRepository.listByUser(userId, 'locked-notes');
         res.json(drafts);
     }
     catch (error) {
@@ -67,13 +60,13 @@ const getAllLockedNotes = async (req, res) => {
     }
 };
 exports.getAllLockedNotes = getAllLockedNotes;
-// Get a single draft by ID
 const getDraft = async (req, res) => {
     try {
-        const draft = await Draft_1.Draft.findOne({
-            _id: req.params.id,
-            user: req.user?.userId
-        });
+        const userId = getAuthenticatedUserId(req);
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+        const draft = await database_1.draftRepository.findByIdForUser(req.params.id, userId);
         if (!draft) {
             return res.status(404).json({ message: 'Draft not found' });
         }
@@ -84,11 +77,13 @@ const getDraft = async (req, res) => {
     }
 };
 exports.getDraft = getDraft;
-// Update a draft
 const updateDraft = async (req, res) => {
     try {
         const { title, content, isEncrypted, passwordHash, passwordSalt, iv, label } = req.body;
-        // Validate word count (max 1000 words)
+        const userId = getAuthenticatedUserId(req);
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
         if (content) {
             const wordCount = content.trim().split(/\s+/).length;
             if (wordCount > 1000) {
@@ -100,7 +95,6 @@ const updateDraft = async (req, res) => {
         const updateData = {
             updatedAt: new Date()
         };
-        // Only update fields that are provided
         if (title !== undefined)
             updateData.title = title;
         if (content !== undefined)
@@ -115,7 +109,7 @@ const updateDraft = async (req, res) => {
             updateData.iv = iv;
         if (label !== undefined)
             updateData.label = label;
-        const draft = await Draft_1.Draft.findOneAndUpdate({ _id: req.params.id, user: req.user?.userId }, updateData, { new: true });
+        const draft = await database_1.draftRepository.updateByIdForUser(req.params.id, userId, updateData);
         if (!draft) {
             return res.status(404).json({ message: 'Draft not found' });
         }
@@ -126,10 +120,13 @@ const updateDraft = async (req, res) => {
     }
 };
 exports.updateDraft = updateDraft;
-// Delete a draft (move to trash)
 const deleteDraft = async (req, res) => {
     try {
-        const draft = await Draft_1.Draft.findOneAndUpdate({ _id: req.params.id, user: req.user?.userId }, { isDeleted: true, updatedAt: new Date() }, { new: true });
+        const userId = getAuthenticatedUserId(req);
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+        const draft = await database_1.draftRepository.softDeleteByIdForUser(req.params.id, userId);
         if (!draft) {
             return res.status(404).json({ message: 'Draft not found' });
         }
@@ -140,10 +137,13 @@ const deleteDraft = async (req, res) => {
     }
 };
 exports.deleteDraft = deleteDraft;
-// Restore a draft from trash
 const restoreDraft = async (req, res) => {
     try {
-        const draft = await Draft_1.Draft.findOneAndUpdate({ _id: req.params.id, user: req.user?.userId }, { isDeleted: false, updatedAt: new Date() }, { new: true });
+        const userId = getAuthenticatedUserId(req);
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+        const draft = await database_1.draftRepository.restoreByIdForUser(req.params.id, userId);
         if (!draft) {
             return res.status(404).json({ message: 'Draft not found' });
         }
@@ -154,13 +154,13 @@ const restoreDraft = async (req, res) => {
     }
 };
 exports.restoreDraft = restoreDraft;
-// Permanently delete a draft
 const permanentDeleteDraft = async (req, res) => {
     try {
-        const draft = await Draft_1.Draft.findOneAndDelete({
-            _id: req.params.id,
-            user: req.user?.userId
-        });
+        const userId = getAuthenticatedUserId(req);
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+        const draft = await database_1.draftRepository.deleteByIdForUser(req.params.id, userId);
         if (!draft) {
             return res.status(404).json({ message: 'Draft not found' });
         }
@@ -171,3 +171,36 @@ const permanentDeleteDraft = async (req, res) => {
     }
 };
 exports.permanentDeleteDraft = permanentDeleteDraft;
+const bulkPermanentDeleteDrafts = async (req, res) => {
+    try {
+        const { ids } = req.body;
+        const userId = getAuthenticatedUserId(req);
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ message: 'ids must be a non-empty array' });
+        }
+        const uniqueIds = Array.from(new Set(ids.filter((id) => typeof id === 'string' && id.trim() !== '')));
+        if (uniqueIds.length === 0) {
+            return res.status(400).json({ message: 'ids must contain valid draft ids' });
+        }
+        const deletedIds = await database_1.draftRepository.bulkPermanentDeleteTrashed(userId, uniqueIds);
+        if (deletedIds.length === 0) {
+            return res.json({
+                message: 'No trashed drafts found for deletion',
+                deletedCount: 0,
+                deletedIds
+            });
+        }
+        res.json({
+            message: 'Drafts permanently deleted',
+            deletedCount: deletedIds.length,
+            deletedIds
+        });
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+exports.bulkPermanentDeleteDrafts = bulkPermanentDeleteDrafts;

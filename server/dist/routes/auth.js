@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const express_validator_1 = require("express-validator");
 const rateLimiter_1 = require("../middleware/rateLimiter");
+const auth_1 = require("../middleware/auth");
 const authController_1 = require("../controllers/authController");
 const router = express_1.default.Router();
 /**
@@ -38,4 +39,18 @@ router.post('/login', rateLimiter_1.authRateLimiter, [
  * @access  Public
  */
 router.post('/google', rateLimiter_1.authRateLimiter, authController_1.googleAuth);
+router.get('/verify', auth_1.auth, authController_1.verifyToken);
+router.post('/logout', auth_1.auth, authController_1.logout);
+router.get('/profile', auth_1.auth, authController_1.getProfile);
+router.put('/profile', auth_1.auth, [
+    (0, express_validator_1.body)('username')
+        .optional()
+        .trim()
+        .notEmpty()
+        .matches(/^[A-Za-z0-9 _-]+$/),
+    (0, express_validator_1.body)('email')
+        .optional()
+        .isEmail()
+        .normalizeEmail()
+], authController_1.updateProfile);
 exports.default = router;

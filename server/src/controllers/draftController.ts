@@ -1,88 +1,82 @@
-import { Request, Response } from 'express';
-import { Draft } from '../models/Draft';
+import { Response } from 'express';
+import { draftRepository, DraftListType } from '../database';
+import { AuthRequest } from '../middleware/auth';
 
-interface AuthRequest extends Request {
-    user?: {
-        userId: string;
-        email: string;
-        username: string;
-    };
-}
+const getAuthenticatedUserId = (req: AuthRequest) => req.user?.userId;
 
-// Create a new draft
 export const createDraft = async (req: AuthRequest, res: Response) => {
     try {
         const { title, content, label } = req.body;
-        
-        // Validate word count (max 1000 words)
-        const wordCount = content.trim().split(/\s+/).length;
+        const userId = getAuthenticatedUserId(req);
+
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        const safeContent = content || '';
+        const wordCount = safeContent.trim().length === 0 ? 0 : safeContent.trim().split(/\s+/).length;
         if (wordCount > 1000) {
-            return res.status(400).json({ 
-                message: 'Draft exceeds maximum word count of 1000 words' 
+            return res.status(400).json({
+                message: 'Draft exceeds maximum word count of 1000 words'
             });
         }
 
-        const draft = new Draft({
-            user: req.user?.userId,
+        const draft = await draftRepository.create({
+            userId,
             title: title || 'Untitled Draft',
-            content: content || '',
+            content: safeContent,
             label: label || null
         });
 
-        await draft.save();
         res.status(201).json(draft);
     } catch (error: any) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// Get all drafts for a user
 export const getDrafts = async (req: AuthRequest, res: Response) => {
     try {
-        const { type } = req.query; // 'drafts', 'locked-notes', or 'trash'
-        
-        let query: any = { user: req.user?.userId };
-        
-        if (type === 'trash') {
-            query.isDeleted = true;
-        } else if (type === 'locked-notes') {
-            query.isEncrypted = true;
-            query.isDeleted = false;
-        } else {
-            // Default: drafts
-            query.isDeleted = false;
-            query.isEncrypted = false;
+        const { type } = req.query;
+        const userId = getAuthenticatedUserId(req);
+
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
         }
 
-        const drafts = await Draft.find(query).sort({ updatedAt: -1 });
+        const listType: DraftListType =
+            type === 'trash' || type === 'locked-notes' ? type : 'drafts';
+
+        const drafts = await draftRepository.listByUser(userId, listType);
         res.json(drafts);
     } catch (error: any) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// Get all locked notes for a user
 export const getAllLockedNotes = async (req: AuthRequest, res: Response) => {
     try {
-        const drafts = await Draft.find({
-            user: req.user?.userId,
-            isEncrypted: true,
-            isDeleted: false
-        }).sort({ updatedAt: -1 });
-        
+        const userId = getAuthenticatedUserId(req);
+
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        const drafts = await draftRepository.listByUser(userId, 'locked-notes');
         res.json(drafts);
     } catch (error: any) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// Get a single draft by ID
 export const getDraft = async (req: AuthRequest, res: Response) => {
     try {
-        const draft = await Draft.findOne({
-            _id: req.params.id,
-            user: req.user?.userId
-        });
+        const userId = getAuthenticatedUserId(req);
+
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        const draft = await draftRepository.findByIdForUser(req.params.id, userId);
 
         if (!draft) {
             return res.status(404).json({ message: 'Draft not found' });
@@ -94,17 +88,20 @@ export const getDraft = async (req: AuthRequest, res: Response) => {
     }
 };
 
-// Update a draft
 export const updateDraft = async (req: AuthRequest, res: Response) => {
     try {
         const { title, content, isEncrypted, passwordHash, passwordSalt, iv, label } = req.body;
-        
-        // Validate word count (max 1000 words)
+        const userId = getAuthenticatedUserId(req);
+
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
         if (content) {
             const wordCount = content.trim().split(/\s+/).length;
             if (wordCount > 1000) {
-                return res.status(400).json({ 
-                    message: 'Draft exceeds maximum word count of 1000 words' 
+                return res.status(400).json({
+                    message: 'Draft exceeds maximum word count of 1000 words'
                 });
             }
         }
@@ -113,7 +110,6 @@ export const updateDraft = async (req: AuthRequest, res: Response) => {
             updatedAt: new Date()
         };
 
-        // Only update fields that are provided
         if (title !== undefined) updateData.title = title;
         if (content !== undefined) updateData.content = content;
         if (isEncrypted !== undefined) updateData.isEncrypted = isEncrypted;
@@ -122,11 +118,7 @@ export const updateDraft = async (req: AuthRequest, res: Response) => {
         if (iv !== undefined) updateData.iv = iv;
         if (label !== undefined) updateData.label = label;
 
-        const draft = await Draft.findOneAndUpdate(
-            { _id: req.params.id, user: req.user?.userId },
-            updateData,
-            { new: true }
-        );
+        const draft = await draftRepository.updateByIdForUser(req.params.id, userId, updateData);
 
         if (!draft) {
             return res.status(404).json({ message: 'Draft not found' });
@@ -138,14 +130,15 @@ export const updateDraft = async (req: AuthRequest, res: Response) => {
     }
 };
 
-// Delete a draft (move to trash)
 export const deleteDraft = async (req: AuthRequest, res: Response) => {
     try {
-        const draft = await Draft.findOneAndUpdate(
-            { _id: req.params.id, user: req.user?.userId },
-            { isDeleted: true, updatedAt: new Date() },
-            { new: true }
-        );
+        const userId = getAuthenticatedUserId(req);
+
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        const draft = await draftRepository.softDeleteByIdForUser(req.params.id, userId);
 
         if (!draft) {
             return res.status(404).json({ message: 'Draft not found' });
@@ -157,14 +150,15 @@ export const deleteDraft = async (req: AuthRequest, res: Response) => {
     }
 };
 
-// Restore a draft from trash
 export const restoreDraft = async (req: AuthRequest, res: Response) => {
     try {
-        const draft = await Draft.findOneAndUpdate(
-            { _id: req.params.id, user: req.user?.userId },
-            { isDeleted: false, updatedAt: new Date() },
-            { new: true }
-        );
+        const userId = getAuthenticatedUserId(req);
+
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        const draft = await draftRepository.restoreByIdForUser(req.params.id, userId);
 
         if (!draft) {
             return res.status(404).json({ message: 'Draft not found' });
@@ -176,13 +170,15 @@ export const restoreDraft = async (req: AuthRequest, res: Response) => {
     }
 };
 
-// Permanently delete a draft
 export const permanentDeleteDraft = async (req: AuthRequest, res: Response) => {
     try {
-        const draft = await Draft.findOneAndDelete({
-            _id: req.params.id,
-            user: req.user?.userId
-        });
+        const userId = getAuthenticatedUserId(req);
+
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        const draft = await draftRepository.deleteByIdForUser(req.params.id, userId);
 
         if (!draft) {
             return res.status(404).json({ message: 'Draft not found' });
@@ -194,10 +190,14 @@ export const permanentDeleteDraft = async (req: AuthRequest, res: Response) => {
     }
 };
 
-// Permanently delete multiple drafts from trash
 export const bulkPermanentDeleteDrafts = async (req: AuthRequest, res: Response) => {
     try {
         const { ids } = req.body;
+        const userId = getAuthenticatedUserId(req);
+
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
 
         if (!Array.isArray(ids) || ids.length === 0) {
             return res.status(400).json({ message: 'ids must be a non-empty array' });
@@ -211,13 +211,7 @@ export const bulkPermanentDeleteDrafts = async (req: AuthRequest, res: Response)
             return res.status(400).json({ message: 'ids must contain valid draft ids' });
         }
 
-        const drafts = await Draft.find({
-            _id: { $in: uniqueIds },
-            user: req.user?.userId,
-            isDeleted: true
-        }).select('_id');
-
-        const deletedIds = drafts.map((draft) => draft._id.toString());
+        const deletedIds = await draftRepository.bulkPermanentDeleteTrashed(userId, uniqueIds);
 
         if (deletedIds.length === 0) {
             return res.json({
@@ -226,12 +220,6 @@ export const bulkPermanentDeleteDrafts = async (req: AuthRequest, res: Response)
                 deletedIds
             });
         }
-
-        await Draft.deleteMany({
-            _id: { $in: deletedIds },
-            user: req.user?.userId,
-            isDeleted: true
-        });
 
         res.json({
             message: 'Drafts permanently deleted',
