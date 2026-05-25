@@ -10,6 +10,15 @@ const uploadDataset = async (req, res) => {
         if (!userId) {
             return res.status(401).json({ message: 'Unauthorized' });
         }
+        const user = await database_1.userRepository.findById(userId);
+        if (!user) {
+            return res.status(401).json({
+                message: 'Session user was not found. Please log out and sign in again.'
+            });
+        }
+        if (!name || typeof name !== 'string') {
+            return res.status(400).json({ message: 'Dataset name is required' });
+        }
         const newDataset = {
             userId,
             name,
@@ -30,9 +39,15 @@ const uploadDataset = async (req, res) => {
             newDataset.mimeType = mimeType;
         }
         else {
+            if (!Array.isArray(data) || data.length === 0) {
+                return res.status(400).json({ message: 'Dataset data must be a non-empty array' });
+            }
+            if (!Array.isArray(columns) || columns.length === 0) {
+                return res.status(400).json({ message: 'Dataset columns must be a non-empty array' });
+            }
             newDataset.data = data;
             newDataset.columns = columns;
-            newDataset.rowCount = rowCount;
+            newDataset.rowCount = typeof rowCount === 'number' ? rowCount : data.length;
         }
         const savedDataset = await database_1.datasetRepository.create(newDataset);
         res.json(savedDataset);
