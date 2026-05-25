@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
+import { LoadingState } from './LoadingState';
 
 interface UploadHistoryItem {
-    _id: string;
+    id: string;
     name: string;
     fileName: string;
     fileSize: number;
@@ -11,6 +12,8 @@ interface UploadHistoryItem {
     columns: string[];
     createdAt: string;
 }
+
+const getHistoryItemId = (item: UploadHistoryItem) => item.id;
 
 export const UploadHistory: React.FC = () => {
     const [history, setHistory] = useState<UploadHistoryItem[]>([]);
@@ -73,9 +76,7 @@ export const UploadHistory: React.FC = () => {
             </div>
 
             {loading && (
-                <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                </div>
+                <LoadingState variant="section" size="sm" label="Loading history" />
             )}
 
             {error && (
@@ -100,7 +101,7 @@ export const UploadHistory: React.FC = () => {
                         <div className="space-y-2 max-h-96 overflow-y-auto">
                             {history.map((item) => (
                                 <div
-                                    key={item._id}
+                                    key={getHistoryItemId(item)}
                                     className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                                 >
                                     <div className="flex items-start justify-between gap-3">

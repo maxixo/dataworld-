@@ -4,7 +4,7 @@ import { API_BASE_URL } from '../config/api';
 import { encryptDraft } from '../utils/encryption';
 
 interface DraftData {
-    _id?: string;
+    id?: string;
     title: string;
     content: string;
     isEncrypted?: boolean;
@@ -12,6 +12,8 @@ interface DraftData {
     passwordSalt?: string | null;
     iv?: string | null;
 }
+
+const getDraftId = (draft?: { id?: string } | null) => draft?.id || '';
 
 interface UseAutosaveOptions {
     draftId: string | undefined;
@@ -109,7 +111,7 @@ export const useAutosave = (
                     const response = await axios.post(`${API_BASE_URL}/drafts`, draftData, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
-                    const newDraftId = response.data?._id;
+                    const newDraftId = getDraftId(response.data);
                     if (newDraftId) {
                         draftIdRef.current = newDraftId;
                         if (onDraftCreated) {
@@ -133,7 +135,7 @@ export const useAutosave = (
                     const response = await axios.post(`${API_BASE_URL}/drafts`, draftData, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
-                    const newDraftId = response.data?._id;
+                    const newDraftId = getDraftId(response.data);
                     if (newDraftId) {
                         draftIdRef.current = newDraftId;
                         if (onDraftCreated) {

@@ -2,14 +2,17 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { API_BASE_URL } from '../config/api';
+import { LoadingState } from './LoadingState';
 
 interface Dataset {
-    _id: string;
+    id: string;
     name: string;
     rowCount: number;
     columns: string[];
     createdAt: string;
 }
+
+const getDatasetId = (dataset: Dataset) => dataset.id;
 
 export const DatasetList: React.FC = () => {
     const [datasets, setDatasets] = useState<Dataset[]>([]);
@@ -40,9 +43,7 @@ export const DatasetList: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            </div>
+            <LoadingState variant="section" size="md" label="Loading datasets" description="Pulling in your latest uploaded files." />
         );
     }
 
@@ -117,8 +118,8 @@ export const DatasetList: React.FC = () => {
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {datasets.map((dataset) => (
                         <Link
-                            key={dataset._id}
-                            to={`/dataset/${dataset._id}`}
+                            key={getDatasetId(dataset)}
+                            to={`/dataset/${getDatasetId(dataset)}`}
                             className="block bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 hover:shadow-lg hover:border-blue-500 dark:hover:border-blue-500 transition-all duration-200"
                         >
                             <div className="flex items-start justify-between">

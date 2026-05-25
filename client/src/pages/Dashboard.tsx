@@ -13,9 +13,10 @@ import type { ActivityItem } from '../components/RecentActivity';
 import RecentDrafts from '../components/RecentDrafts';
 import { API_BASE_URL } from '../config/api';
 import { getFileType } from '../utils/formatters';
+import { LoadingState } from '../components/LoadingState';
 
 interface Dataset {
-    _id: string;
+    id: string;
     name: string;
     rowCount: number;
     columns: string[];
@@ -26,7 +27,7 @@ interface Dataset {
 }
 
 interface Draft {
-    _id: string;
+    id: string;
     title: string;
     content: string;
     isEncrypted: boolean;
@@ -35,6 +36,9 @@ interface Draft {
     createdAt: string;
     updatedAt: string;
 }
+
+const getDatasetId = (dataset: Dataset) => dataset.id;
+const getDraftId = (draft: Draft) => draft.id;
 
 export const Dashboard: React.FC = () => {
     const { user, logout } = useAuth();
@@ -73,7 +77,7 @@ export const Dashboard: React.FC = () => {
         // Generate activities from datasets
         if (datasets.length > 0) {
             const activityItems: ActivityItem[] = datasets.map((dataset) => ({
-                id: dataset._id,
+                id: getDatasetId(dataset),
                 type: 'upload' as const,
                 title: `Uploaded ${dataset.name}`,
                 timestamp: dataset.createdAt || new Date().toISOString(),
@@ -111,7 +115,7 @@ export const Dashboard: React.FC = () => {
             }
 
             const uniqueDrafts = Array.from(
-                new Map(combinedDrafts.map((draft) => [draft._id, draft])).values()
+                new Map(combinedDrafts.map((draft) => [getDraftId(draft), draft])).values()
             );
             setDrafts(uniqueDrafts);
         } catch (err: any) {
@@ -198,9 +202,12 @@ export const Dashboard: React.FC = () => {
 
                             {/* Loading State */}
                             {loading && (
-                                <div className="flex justify-center items-center py-12">
-                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                                </div>
+                                <LoadingState
+                                    variant="section"
+                                    size="md"
+                                    label="Loading workspace"
+                                    description="Fetching your latest datasets and refreshing the dashboard."
+                                />
                             )}
 
                             {/* Error State */}
@@ -249,13 +256,13 @@ export const Dashboard: React.FC = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                                     {filteredDatasets.map((dataset) => (
                                         <DatasetCard
-                                            key={dataset._id}
-                                            id={dataset._id}
+                                            key={getDatasetId(dataset)}
+                                            id={getDatasetId(dataset)}
                                             name={dataset.name}
                                             updatedAt={dataset.updatedAt || dataset.createdAt}
                                             fileSize={dataset.fileSize}
                                             data={dataset.data}
-                                            onDelete={() => handleDeleteDataset(dataset._id)}
+                                            onDelete={() => handleDeleteDataset(getDatasetId(dataset))}
                                         />
                                     ))}
                                 </div>

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { parseFile } from '../services/fileParser';
+import { parseFile, SUPPORTED_FILE_INPUT_ACCEPT, isSupportedUploadFile } from '../services/fileParser';
 import { prepareEncryptedUpload } from '../services/encryptionService';
 import { uploadEncryptedDataset, uploadNonEncryptedDataset } from '../services/uploadService';
 
@@ -30,6 +30,10 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
         setIsUploading(true);
 
         try {
+            if (!isSupportedUploadFile(file)) {
+                throw new Error('Unsupported file type. Please upload a CSV, JSON, XLSX, or XLS file.');
+            }
+
             // Remove file extension from name
             const baseName = file.name.replace(/\.[^/.]+$/, '');
 
@@ -97,6 +101,8 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
         if (files && files.length > 0) {
             processFile(files[0]);
         }
+
+        e.target.value = '';
     };
 
     return (
@@ -116,7 +122,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
             >
                 <input
                     type="file"
-                    accept=".csv,.json,.xlsx,.xls"
+                    accept={SUPPORTED_FILE_INPUT_ACCEPT}
                     onChange={handleFileInput}
                     className="hidden"
                     id="file-upload"

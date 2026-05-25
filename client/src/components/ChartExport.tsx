@@ -1,6 +1,7 @@
 import React from 'react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import { LoadingState } from './LoadingState';
 
 interface ChartExportProps {
     chartRef: React.RefObject<HTMLDivElement | null>;
@@ -143,10 +144,7 @@ export const ChartExport: React.FC<ChartExportProps> = ({ chartRef, data, fileNa
             </button>
 
             {isExporting && (
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                    Exporting...
-                </div>
+                <LoadingState variant="inline" size="sm" label="Exporting" className="text-gray-600 dark:text-gray-400" />
             )}
         </div>
     );

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
 import { decryptToBlob, decryptFilename } from '../utils/fileEncryption';
+import { LoadingState } from './LoadingState';
 
 interface Props {
   id: string;
@@ -74,7 +75,7 @@ setError(err.response?.data?.message || err.message || 'Decryption failed');
         <div className="flex gap-3">
           <button onClick={onClose} className="px-4 py-2 border rounded">Cancel</button>
           <button onClick={handleDecrypt} disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded">
-            {loading ? 'Decrypting...' : 'Decrypt & Download'}
+            {loading ? <LoadingState variant="inline" size="sm" label="Decrypting" className="text-white" /> : 'Decrypt & Download'}
           </button>
         </div>
       </div>

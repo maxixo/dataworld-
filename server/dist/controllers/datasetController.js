@@ -16,14 +16,17 @@ const uploadDataset = async (req, res) => {
                 message: 'Session user was not found. Please log out and sign in again.'
             });
         }
-        if (!name || typeof name !== 'string') {
+        const normalizedName = typeof name === 'string' ? name.trim() : '';
+        if (!normalizedName) {
             return res.status(400).json({ message: 'Dataset name is required' });
         }
+        const normalizedFileName = typeof fileName === 'string' && fileName.trim() ? fileName.trim() : normalizedName;
+        const normalizedFileSize = Number.isFinite(Number(fileSize)) ? Number(fileSize) : 0;
         const newDataset = {
             userId,
-            name,
-            fileName: fileName || name,
-            fileSize: fileSize || 0,
+            name: normalizedName,
+            fileName: normalizedFileName,
+            fileSize: normalizedFileSize,
             createdAt: new Date()
         };
         if (encryptedBlobBase64) {
@@ -32,22 +35,30 @@ const uploadDataset = async (req, res) => {
             newDataset.salt = salt;
             newDataset.iv = iv;
             newDataset.isEncrypted = true;
-            newDataset.label = label;
-            newDataset.encryptedFileName = encryptedFileName;
-            newDataset.encryptedFileNameSalt = encryptedFileNameSalt;
-            newDataset.encryptedFileNameIv = encryptedFileNameIv;
-            newDataset.mimeType = mimeType;
+            newDataset.label = typeof label === 'string' ? label : null;
+            newDataset.encryptedFileName = typeof encryptedFileName === 'string' ? encryptedFileName : null;
+            newDataset.encryptedFileNameSalt = typeof encryptedFileNameSalt === 'string' ? encryptedFileNameSalt : null;
+            newDataset.encryptedFileNameIv = typeof encryptedFileNameIv === 'string' ? encryptedFileNameIv : null;
+            newDataset.mimeType = typeof mimeType === 'string' ? mimeType : null;
         }
         else {
             if (!Array.isArray(data) || data.length === 0) {
                 return res.status(400).json({ message: 'Dataset data must be a non-empty array' });
             }
-            if (!Array.isArray(columns) || columns.length === 0) {
+            const normalizedColumns = Array.isArray(columns)
+                ? columns
+                    .map((column) => String(column ?? '').trim())
+                    .filter(Boolean)
+                : [];
+            if (normalizedColumns.length === 0) {
                 return res.status(400).json({ message: 'Dataset columns must be a non-empty array' });
             }
             newDataset.data = data;
-            newDataset.columns = columns;
-            newDataset.rowCount = typeof rowCount === 'number' ? rowCount : data.length;
+            newDataset.columns = normalizedColumns;
+            const parsedRowCount = Number(rowCount);
+            newDataset.rowCount = Number.isInteger(parsedRowCount) && parsedRowCount >= 0
+                ? parsedRowCount
+                : data.length;
         }
         const savedDataset = await database_1.datasetRepository.create(newDataset);
         res.json(savedDataset);
@@ -86,7 +97,6 @@ const getDatasetHistory = async (req, res) => {
             limit: 50,
         });
         res.json(datasets.map((dataset) => ({
-            _id: dataset.id,
             id: dataset.id,
             name: dataset.name,
             fileName: dataset.fileName,

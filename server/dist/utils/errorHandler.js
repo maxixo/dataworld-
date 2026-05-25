@@ -16,7 +16,18 @@ const handleError = (res, err, context) => {
         return res.status(400).json({ message: 'Related record does not exist' });
     }
     if (err.code === '22P02') {
-        return res.status(400).json({ message: 'Invalid input format' });
+        const isProduction = process.env.NODE_ENV === 'production';
+        return res.status(400).json({
+            message: 'Invalid input format',
+            ...(isProduction
+                ? {}
+                : {
+                    error: err.message,
+                    detail: err.detail,
+                    where: err.where,
+                    hint: err.hint,
+                }),
+        });
     }
     if (err.code === 'LIMIT_FILE_SIZE') {
         return res.status(413).json({ message: 'File too large' });

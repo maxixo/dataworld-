@@ -5,9 +5,10 @@ import { Header } from '../components/Header';
 import { DatasetCard } from '../components/DatasetCard';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
+import { LoadingState } from '../components/LoadingState';
 
 interface Dataset {
-    _id: string;
+    id: string;
     name: string;
     rowCount: number;
     columns: string[];
@@ -18,6 +19,8 @@ interface Dataset {
     isEncrypted?: boolean;
     label?: string | null;
 }
+
+const getDatasetId = (dataset: Dataset) => dataset.id;
 
 export const Files: React.FC = () => {
     const { user, logout } = useAuth();
@@ -88,9 +91,12 @@ export const Files: React.FC = () => {
 
                 {/* Loading State */}
                 {loading && (
-                    <div className="flex justify-center items-center py-12">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                    </div>
+                    <LoadingState
+                        variant="section"
+                        size="md"
+                        label="Loading files"
+                        description="Preparing your uploaded files and encrypted items."
+                    />
                 )}
 
                 {/* Error State */}
@@ -158,15 +164,15 @@ export const Files: React.FC = () => {
                             {datasets
                         .filter(ds => activeTab === 'all' ? !ds.isEncrypted : !!ds.isEncrypted)                                .map((dataset) => (
                                     <DatasetCard
-                                        key={dataset._id}
-                                        id={dataset._id}
+                                        key={getDatasetId(dataset)}
+                                        id={getDatasetId(dataset)}
                                         name={dataset.isEncrypted && dataset.label ? dataset.label : dataset.name}
                                         updatedAt={dataset.updatedAt || dataset.createdAt}
                                         fileSize={dataset.fileSize}
                                         data={dataset.isEncrypted ? [] : dataset.data}
                                         isEncrypted={dataset.isEncrypted}
                                         label={dataset.label}
-                                        onDelete={() => handleDeleteDataset(dataset._id)}
+                                        onDelete={() => handleDeleteDataset(getDatasetId(dataset))}
                                     />
                                 ))}
                         </div>

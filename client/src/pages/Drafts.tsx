@@ -4,11 +4,12 @@ import { useAuth } from '../context/AuthContext';
 import { Header } from '../components/Header';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
+import { LoadingState } from '../components/LoadingState';
 
 type TabType = 'drafts' | 'locked-notes' | 'trash';
 
 interface Draft {
-    _id: string;
+    id: string;
     title: string;
     content: string;
     isEncrypted: boolean;
@@ -17,6 +18,8 @@ interface Draft {
     createdAt: string;
     updatedAt: string;
 }
+
+const getDraftId = (draft: Draft) => draft.id;
 
 export const Drafts: React.FC = () => {
     const { user, logout } = useAuth();
@@ -74,7 +77,7 @@ export const Drafts: React.FC = () => {
         }
 
         setSelectedTrashIds((prev) =>
-            prev.filter((id) => drafts.some((draft) => draft._id === id))
+            prev.filter((id) => drafts.some((draft) => getDraftId(draft) === id))
         );
     }, [activeTab, drafts]);
 
@@ -163,10 +166,12 @@ export const Drafts: React.FC = () => {
     const renderDraftsList = () => {
         if (loading) {
             return (
-                <div className="flex flex-col justify-center items-center py-12 text-gray-600 dark:text-gray-400">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                    <span className="mt-3 text-sm">Loading drafts...</span>
-                </div>
+                <LoadingState
+                    variant="section"
+                    size="md"
+                    label="Loading drafts"
+                    description="Gathering saved drafts, encrypted notes, and trash items."
+                />
             );
         }
 
@@ -239,15 +244,15 @@ export const Drafts: React.FC = () => {
                 )}
                 {drafts.map((draft) => (
                     <div
-                        key={draft._id}
+                        key={getDraftId(draft)}
                         className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-5 hover:shadow-md transition-all cursor-pointer group active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                        onClick={() => handleDraftClick(draft._id)}
+                        onClick={() => handleDraftClick(getDraftId(draft))}
                         role="button"
                         tabIndex={0}
                         onKeyDown={(event) => {
                             if (event.key === 'Enter' || event.key === ' ') {
                                 event.preventDefault();
-                                handleDraftClick(draft._id);
+                                handleDraftClick(getDraftId(draft));
                             }
                         }}
                     >
@@ -256,10 +261,10 @@ export const Drafts: React.FC = () => {
                                 {activeTab === 'trash' && (
                                     <input
                                         type="checkbox"
-                                        checked={selectedTrashIds.includes(draft._id)}
+                                        checked={selectedTrashIds.includes(getDraftId(draft))}
                                         onChange={(event) => {
                                             event.stopPropagation();
-                                            toggleTrashSelection(draft._id);
+                                            toggleTrashSelection(getDraftId(draft));
                                         }}
                                         onClick={(event) => event.stopPropagation()}
                                         className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
@@ -290,7 +295,7 @@ export const Drafts: React.FC = () => {
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            handleRestoreDraft(draft._id);
+                                            handleRestoreDraft(getDraftId(draft));
                                         }}
                                         className="inline-flex items-center justify-center h-11 w-11 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
                                         title="Restore"
@@ -304,7 +309,7 @@ export const Drafts: React.FC = () => {
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            handleDeleteDraft(draft._id);
+                                            handleDeleteDraft(getDraftId(draft));
                                         }}
                                         className="inline-flex items-center justify-center h-11 w-11 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                                         title="Delete"

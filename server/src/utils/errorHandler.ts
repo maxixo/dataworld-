@@ -20,7 +20,19 @@ export const handleError = (res: Response, err: any, context: string) => {
   }
 
   if (err.code === '22P02') {
-    return res.status(400).json({ message: 'Invalid input format' });
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    return res.status(400).json({
+      message: 'Invalid input format',
+      ...(isProduction
+        ? {}
+        : {
+            error: err.message,
+            detail: err.detail,
+            where: err.where,
+            hint: err.hint,
+          }),
+    });
   }
 
   if (err.code === 'LIMIT_FILE_SIZE') {

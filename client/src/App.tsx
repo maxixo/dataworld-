@@ -6,6 +6,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { store, persistor } from './store';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { LoadingState } from './components/LoadingState';
  
 const Login = lazy(() => import('./pages/Login').then((module) => ({ default: module.Login })));
 const Signup = lazy(() => import('./pages/Signup').then((module) => ({ default: module.Signup })));
@@ -22,7 +23,7 @@ const DraftEditor = lazy(() => import('./pages/DraftEditor').then((module) => ({
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAuth();
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <LoadingState variant="page" size="lg" label="Checking access" description="Preparing your workspace and validating your session." />;
   if (!isAuthenticated) return <Navigate to="/" replace />;
 
   return children;
@@ -32,18 +33,35 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAuth();
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <LoadingState variant="page" size="lg" label="Loading session" description="Checking whether you already have an active account session." />;
   if (isAuthenticated) return <Navigate to="/app" replace />;
 
   return children;
 };
 
-const RouteFallback = () => <div>Loading...</div>;
+const RouteFallback = () => (
+  <LoadingState
+    variant="page"
+    size="lg"
+    label="Loading screen"
+    description="Fetching the next view and warming up the interface."
+  />
+);
 
 function App() {
   return (
     <Provider store={store}>
-      <PersistGate loading={<div>Loading...</div>} persistor={persistor}>
+      <PersistGate
+        loading={
+          <LoadingState
+            variant="page"
+            size="lg"
+            label="Restoring app state"
+            description="Rehydrating your saved session, theme, and local workspace state."
+          />
+        }
+        persistor={persistor}
+      >
           <ThemeProvider>
             <Router>
               <AuthProvider>

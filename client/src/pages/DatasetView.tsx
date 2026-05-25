@@ -21,9 +21,10 @@ import {
 import { ChartExport } from '../components/ChartExport';
 import { ChartCustomization, ChartCustomization as ChartCustomizationType } from '../components/ChartCustomization';
 import { DataFilter } from '../components/DataFilter';
+import { LoadingState } from '../components/LoadingState';
 
 interface Dataset {
-    _id: string;
+    id: string;
     name: string;
     data: any[];
     columns: string[];
@@ -108,9 +109,12 @@ export const DatasetView: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            </div>
+            <LoadingState
+                variant="page"
+                size="lg"
+                label="Loading dataset"
+                description="Assembling rows, columns, and chart defaults for this view."
+            />
         );
     }
 

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getRelativeTime } from '../utils/formatters';
 
 interface Draft {
-    _id: string;
+    id: string;
     title: string;
     content: string;
     isEncrypted: boolean;
@@ -12,6 +12,8 @@ interface Draft {
     createdAt: string;
     updatedAt: string;
 }
+
+const getDraftId = (draft: Draft) => draft.id;
 
 export interface RecentDraftsProps {
     drafts: Draft[];
@@ -89,8 +91,8 @@ export const RecentDrafts: React.FC<RecentDraftsProps> = ({ drafts }) => {
                 ) : (
                     recentDrafts.map((draft) => (
                         <div
-                            key={draft._id}
-                            onClick={() => handleDraftClick(draft._id)}
+                            key={getDraftId(draft)}
+                            onClick={() => handleDraftClick(getDraftId(draft))}
                             className="group flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all cursor-pointer"
                         >
                             {/* Icon */}

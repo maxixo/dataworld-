@@ -8,7 +8,7 @@ import { encryptDraft, decryptDraft, verifyPassword, hashPassword } from '../uti
 import { useAutosave } from '../hooks/useAutosave';
 
 interface DraftData {
-    _id?: string;
+    id?: string;
     title: string;
     content: string;
     isEncrypted?: boolean;
@@ -17,6 +17,8 @@ interface DraftData {
     passwordSalt?: string | null;
     iv?: string | null;
 }
+
+const getDraftId = (draft?: { id?: string } | null) => draft?.id || '';
 
 export const DraftEditor: React.FC = () => {
     const { user, logout } = useAuth();
@@ -224,7 +226,7 @@ export const DraftEditor: React.FC = () => {
                     const response = await axios.post(`${API_BASE_URL}/drafts`, draftData, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
-                    const newDraftId = response.data?._id;
+                    const newDraftId = getDraftId(response.data);
                     if (newDraftId) {
                         applyDraftId(newDraftId);
                     }
@@ -242,7 +244,7 @@ export const DraftEditor: React.FC = () => {
                     const response = await axios.post(`${API_BASE_URL}/drafts`, draftData, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
-                    const newDraftId = response.data?._id;
+                    const newDraftId = getDraftId(response.data);
                     if (newDraftId) {
                         applyDraftId(newDraftId);
                     }
@@ -291,7 +293,7 @@ export const DraftEditor: React.FC = () => {
                     { title, content },
                     { headers: { 'Authorization': `Bearer ${token}` } }
                 );
-                currentDraftId = response.data._id;
+                currentDraftId = getDraftId(response.data);
                 if (currentDraftId) {
                     setDraftId(currentDraftId);
                 }

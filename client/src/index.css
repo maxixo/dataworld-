@@ -18,6 +18,82 @@ html {
   color-scheme: light dark;
 }
 
+.loader-cluster {
+  position: relative;
+}
+
+.loader-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(59, 130, 246, 0.45), transparent 55%),
+    radial-gradient(circle at 70% 70%, rgba(34, 211, 238, 0.4), transparent 58%);
+  filter: blur(12px);
+  animation: loader-breathe 2.4s ease-in-out infinite;
+}
+
+.loader-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 1.5px solid rgba(59, 130, 246, 0.22);
+  border-top-color: rgba(59, 130, 246, 0.92);
+  border-right-color: rgba(34, 211, 238, 0.75);
+  animation: loader-orbit 1.5s linear infinite;
+}
+
+.dark .loader-ring {
+  border-color: rgba(96, 165, 250, 0.18);
+  border-top-color: rgba(96, 165, 250, 0.95);
+  border-right-color: rgba(34, 211, 238, 0.82);
+}
+
+.loader-ring-delayed {
+  inset: 16%;
+  border-color: rgba(14, 165, 233, 0.16);
+  border-bottom-color: rgba(14, 165, 233, 0.8);
+  border-left-color: rgba(99, 102, 241, 0.58);
+  animation-direction: reverse;
+  animation-duration: 2.1s;
+}
+
+.dark .loader-ring-delayed {
+  border-color: rgba(34, 211, 238, 0.12);
+  border-bottom-color: rgba(34, 211, 238, 0.78);
+  border-left-color: rgba(129, 140, 248, 0.52);
+}
+
+.loader-core {
+  position: absolute;
+  inset: 34%;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, rgb(37, 99, 235), rgb(34, 211, 238));
+  box-shadow:
+    0 0 0 6px rgba(255, 255, 255, 0.75),
+    0 10px 30px rgba(37, 99, 235, 0.25);
+  animation: loader-core-pulse 1.8s ease-in-out infinite;
+}
+
+.dark .loader-core {
+  box-shadow:
+    0 0 0 6px rgba(17, 24, 39, 0.85),
+    0 10px 30px rgba(34, 211, 238, 0.22);
+}
+
+.loader-dot {
+  animation: loader-dot-fade 1.2s ease-in-out infinite;
+  opacity: 0.25;
+}
+
+.loader-dot-delay-1 {
+  animation-delay: 0.15s;
+}
+
+.loader-dot-delay-2 {
+  animation-delay: 0.3s;
+}
+
 /* Utilities and visual helpers from the landing HTML */
 .glass-panel {
   background: rgba(255, 255, 255, 0.7);
@@ -47,6 +123,50 @@ html {
 @media (prefers-reduced-motion: no-preference) {
   html {
     scroll-behavior: smooth;
+  }
+}
+
+@keyframes loader-orbit {
+  from {
+    transform: rotate(0deg) scale(0.98);
+  }
+  50% {
+    transform: rotate(180deg) scale(1);
+  }
+  to {
+    transform: rotate(360deg) scale(0.98);
+  }
+}
+
+@keyframes loader-core-pulse {
+  0%, 100% {
+    transform: scale(0.9);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes loader-breathe {
+  0%, 100% {
+    opacity: 0.72;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes loader-dot-fade {
+  0% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.2;
   }
 }
 
