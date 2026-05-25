@@ -6,16 +6,81 @@ export interface ParsedFile {
   columns: string[];
 }
 
+type TabularRow = Record<string, string | number | boolean | null>;
+
+const normalizeCellValue = (value: unknown): string | number | boolean | null => {
+  if (value === null || value === undefined || value === '') {
+    return '';
+  }
+
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : '';
+  }
+
+  if (typeof value === 'boolean' || typeof value === 'string') {
+    return value;
+  }
+
+  if (Array.isArray(value) || typeof value === 'object') {
+    return JSON.stringify(value);
+  }
+
+  return String(value);
+};
+
+const sanitizeParsedRows = (rows: unknown[]): ParsedFile => {
+  const objectRows = rows.filter((row): row is Record<string, unknown> =>
+    typeof row === 'object' && row !== null && !Array.isArray(row)
+  );
+
+  if (objectRows.length === 0) {
+    throw new Error('File must contain at least one row of object data');
+  }
+
+  const columnSet = new Set<string>();
+  objectRows.forEach((row) => {
+    Object.keys(row).forEach((key) => {
+      const normalizedKey = String(key).trim();
+      if (normalizedKey) {
+        columnSet.add(normalizedKey);
+      }
+    });
+  });
+
+  const columns = Array.from(columnSet);
+
+  if (columns.length === 0) {
+    throw new Error('File must contain at least one column');
+  }
+
+  const data: TabularRow[] = objectRows.map((row) => {
+    const normalizedRow: TabularRow = {};
+
+    columns.forEach((column) => {
+      normalizedRow[column] = normalizeCellValue(row[column]);
+    });
+
+    return normalizedRow;
+  });
+
+  return { data, columns };
+};
+
 export async function parseCSV(file: File): Promise<ParsedFile> {
   return new Promise((resolve, reject) => {
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
       complete: (results) => {
-        resolve({
-          data: results.data,
-          columns: results.meta.fields || []
-        });
+        try {
+          resolve(sanitizeParsedRows(results.data as unknown[]));
+        } catch (error) {
+          reject(error);
+        }
       },
       error: (err) => {
         reject(new Error(`Failed to parse CSV: ${err.message}`));
@@ -29,16 +94,17 @@ export async function parseExcel(file: File): Promise<ParsedFile> {
   const workbook = XLSX.read(arrayBuffer, { type: 'array' });
   const sheetName = workbook.SheetNames[0];
   const worksheet = workbook.Sheets[sheetName];
-  const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+  const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+    defval: '',
+    raw: false,
+    blankrows: false
+  });
   
   if (jsonData.length === 0) {
     throw new Error('Excel file is empty or has no data');
   }
-  
-  return {
-    data: jsonData,
-    columns: Object.keys(jsonData[0] as object)
-  };
+
+  return sanitizeParsedRows(jsonData as unknown[]);
 }
 
 export async function parseJSON(file: File): Promise<ParsedFile> {
@@ -48,11 +114,8 @@ export async function parseJSON(file: File): Promise<ParsedFile> {
   if (!Array.isArray(jsonData) || jsonData.length === 0) {
     throw new Error('JSON file must contain a non-empty array of objects');
   }
-  
-  return {
-    data: jsonData,
-    columns: Object.keys(jsonData[0] as object)
-  };
+
+  return sanitizeParsedRows(jsonData);
 }
 
 export async function parseFile(file: File): Promise<ParsedFile> {

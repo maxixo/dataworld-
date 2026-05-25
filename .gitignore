@@ -17,8 +17,10 @@ node_modules/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.production
 client/.env
 server/.env
+server/.env.production
 
 # Logs
 npm-debug.log*
@@ -49,6 +51,7 @@ test_data_sales.xlsx
 landing/
 
 # Documentation files (optional - remove if you want to keep them in git)
+*.md
 changes.md
 plan.md
 EXCEL_INTEGRATION.md
