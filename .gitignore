@@ -50,19 +50,6 @@ screen.png
 test_data_sales.xlsx
 landing/
 
-# Documentation files (optional - remove if you want to keep them in git)
+# Documentation
 *.md
-changes.md
-plan.md
-EXCEL_INTEGRATION.md
-FRAMER_MOTION_GUIDE.md
-GOOGLE_AUTH_IMPLEMENTATION_PLAN.md
-GOOGLE_OAUTH_QUICKSTART.md
-MIGRATION_SUMMARY.md
-REFACTORING_SUMMARY.md
-TASK_COMPLETION_REPORT.md
-ui-implementation-changes.md
-ui-implementation-plan.md
-VERCEL_DEPLOYMENT_GUIDE.md
-AUTOSAVE_IMPLEMENTATION.md
-client/README.md
+!/README.md
