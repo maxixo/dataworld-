@@ -7,5 +7,5 @@ export interface DatabaseConfig {
 
 export const getDatabaseConfig = (): DatabaseConfig => ({
     postgresUrl: process.env.DATABASE_URL,
-    postgresSsl: process.env.PG_SSL === 'true' || process.env.NODE_ENV === 'production',
+    postgresSsl: process.env.PG_SSL === 'true',
 });
